@@ -77,3 +77,13 @@ describe('setup prompt', () => {
     expect(user[1].text).toMatch(/syllabus/)
   })
 })
+
+describe('past paper index', async () => {
+  const { PAPER_JSON_SCHEMA, PaperIndex, paperProblems } = await import('./paper-index')
+  it('strict schema; unknown items are problems', () => {
+    expect(strictProblems(PAPER_JSON_SCHEMA)).toEqual([])
+    const course = { structure: proposalFrom(SetupResponse.parse(aliAnswer()), 'ALI', 'blue').file.course.structure as never }
+    const r = PaperIndex.parse({ schema: 'paper/v1', year: 2024, questions: [{ number: '1', marks: 2, itemIds: ['MA.01.1', 'ZZ.01.1'], summary: '' }], warnings: [] })
+    expect(paperProblems(course)(r)).toEqual(['question 1: unknown item ZZ.01.1'])
+  })
+})

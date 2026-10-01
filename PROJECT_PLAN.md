@@ -595,12 +595,12 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **2.1 Settings: API key** *(done)* in `secrets` (never exported; never in URLs, bodies or localStorage, which the browser test checks). "Test key" (`GET /key`) shows the spend and warns in red when the key has no spending limit.
 - **2.2 Models list + two pickers** *(done)*: live list cached for a day; searchable pickers filtered by job (setup: JSON schema and ≥ 64k context; grading: also images), with price, context and capability tags; PDF engine choice.
 - **2.3 OpenRouter client** *(done)*: `chat()` with strict JSON Schema plus `provider.require_parameters`, the file-parser plugin and usage/cost; failures classified (no key, bad key, credits, rate limit with Retry-After, missing capability, server, network, timeout, cancelled, truncated, empty), with plain-language explanations; `generateStructured()` validates with Zod and makes exactly one cheap repair call (no files) before giving you the raw answer. Every call, failed or not, is logged with its cost. 14 mocked-fetch tests.
-- **2.4 Course setup wizard.**
+- **2.4 Course setup wizard.** *(done; rehearsed end to end against a mocked OpenRouter: files kept across reloads, one repair without files, edits, confirm)*
   - Upload the guide (and any past papers). Files are **saved as documents first**.
   - Then: cost estimate, call, preview (tree, counts, assessments, sections, **formulas shown readably, with a "try it" calculator**, calibration against ECTS), edits, confirm.
-- **2.5 Re-run setup with diff.**
-- **2.6 Index one past paper** (a smaller AI call), then recompute `examWeight`.
-- **2.7 Cost display**, per call and per course.
+- **2.5 Re-run setup with diff.** *(done)* From Course details → Re-run AI setup.
+- **2.6 Index one past paper** *(done)*: Course details → Index a past paper; a small call tags the questions; saving recomputes every exam weight.
+- **2.7 Cost display** *(done)*: the cost after each call, the AI spend per course in Course details, and the full call log with per-course totals in Settings.
 
 ### Milestone 3: assessments, availability, scheduler
 - **3.1 Exams view:** assessments CRUD, sections and formula editors with live validation, results, sittings.

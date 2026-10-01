@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { Download, Sparkles } from 'lucide-react'
+import { Download, FileSearch, Sparkles } from 'lucide-react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '@/lib/store/db'
+import { formatUsd } from '@/lib/format'
+import { PaperIndexDialog } from './PaperIndexDialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -129,6 +133,7 @@ function Body({ course, assessments, onDone }: { course: Course; assessments: As
         <Checkbox checked={f.archived} onCheckedChange={(v) => set({ archived: v === true })} />
         Archived (read-only, left out of planning)
       </label>
+      <AiTools course={course} />
       <Problems problems={problems} />
       <DialogFooter>
         <Button type="button" variant="outline" className="sm:mr-auto" onClick={() => void exportFile()}><Download />Export course file</Button>
@@ -139,5 +144,25 @@ function Body({ course, assessments, onDone }: { course: Course; assessments: As
         <Button type="submit">Save</Button>
       </DialogFooter>
     </form>
+  )
+}
+
+/** Past-paper indexing and this course's AI spend. */
+function AiTools({ course }: { course: Course }) {
+  const [paperOpen, setPaperOpen] = useState(false)
+  const spend = useLiveQuery(async () => {
+    let usd = 0
+    let calls = 0
+    await db.aiCalls.where('courseKey').equals(course.key).each((c) => { usd += c.costUsd ?? 0; calls++ })
+    return { usd, calls }
+  }, [course.key])
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-md border border-border px-3 py-2">
+      <span className="flex-1 text-xs text-muted-foreground tabular-nums">
+        {course.pastPapers.length} past paper{course.pastPapers.length === 1 ? '' : 's'} indexed · AI spend on {course.key}: {formatUsd(spend?.usd ?? 0)} in {spend?.calls ?? 0} call{spend?.calls === 1 ? '' : 's'}
+      </span>
+      <Button type="button" size="sm" variant="outline" disabled={course.archived} onClick={() => setPaperOpen(true)}><FileSearch />Index a past paper</Button>
+      <PaperIndexDialog course={course} open={paperOpen} onOpenChange={setPaperOpen} />
+    </div>
   )
 }

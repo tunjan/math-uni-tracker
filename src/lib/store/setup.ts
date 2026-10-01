@@ -107,3 +107,15 @@ export async function applyRerun(draft: SetupDraft, r: SetupResponse, accepted: 
   await deleteDraft(draft.id)
   return { skipped }
 }
+
+/** Save an indexed past paper: the PDF as a document, its questions in the index, and recomputed exam weights. */
+export async function savePaperIndex(courseKey: string, file: { name: string; blob: Blob }, index: { year: number | null; questions: PastPaper['questions'] }) {
+  const course = await getCourse(courseKey)
+  if (!course) throw new ValidationError('Course', [`no course ${courseKey}`])
+  const doc = await addDocument({
+    courseKey, topicId: null, subtopicId: null, assessmentId: null, kind: 'past_paper', source: 'class', name: file.name,
+    format: 'pdf', mime: 'application/pdf', linkedIds: [], itemIds: [], year: index.year,
+  }, file.blob)
+  const papers = [...course.pastPapers, { documentId: doc.id, year: index.year, label: file.name, questions: index.questions }]
+  await replaceStructure(courseKey, withExamWeights(course.structure, papers), `past paper ${file.name}`, papers)
+}

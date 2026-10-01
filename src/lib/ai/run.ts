@@ -7,6 +7,8 @@ import { getModels } from '../openrouter/models'
 import { generateStructured, type CallLog, type Outcome } from '../openrouter/structured'
 import type { CourseStructure } from '../schema/structure'
 import { SETUP_JSON_SCHEMA, SetupResponse, setupMessages, setupProblems } from './setup'
+import { PAPER_JSON_SCHEMA, PaperIndex, paperMessages, paperProblems } from './paper-index'
+import type { Course } from '../schema/course'
 
 /** Record a call (with its cost) in the log. */
 export async function logCall(call: CallLog) {
@@ -49,4 +51,18 @@ export function estimateSetupCost(pages: number, model: { pricing: { prompt: num
   const input = pages * 800 + 4000
   const output = 25_000
   return { input, output, usd: input * model.pricing.prompt + output * model.pricing.completion }
+}
+
+/** Index one past paper against a course's items (a much smaller call than full setup). */
+export async function runPaperIndex(course: Course, file: { name: string; blob: Blob }, signal?: AbortSignal): Promise<Outcome<PaperIndex>> {
+  const [apiKey, settings] = await Promise.all([getApiKey(), getSettings()])
+  if (!apiKey) throw new AiError('no_key', 'no API key')
+  const model = settings.models.setup
+  if (!model) throw new AiError('bad_request', 'choose a course-setup model in Settings first')
+  return generateStructured({
+    apiKey, model, pdfEngine: settings.pdfEngine, signal, maxTokens: 16_000,
+    messages: paperMessages(course, { name: file.name, dataUrl: await toDataUrl(file.blob) }),
+    schemaName: 'past_paper_index', jsonSchema: PAPER_JSON_SCHEMA, zod: PaperIndex, check: paperProblems(course),
+    purpose: 'paper_index', repairPurpose: 'setup_repair', courseKey: course.key, log: logCall,
+  })
 }
