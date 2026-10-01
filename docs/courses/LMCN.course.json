@@ -1,0 +1,816 @@
+{
+  "schema": "course/v1",
+  "course": {
+    "key": "LMCN",
+    "code": "61021039",
+    "title": "Lenguaje Matemático, Conjuntos y Números",
+    "credits": 6,
+    "level": "Grado en Matemáticas, primer curso, primer semestre",
+    "language": "es",
+    "textbooks": [
+      {
+        "title": "Lenguaje matemático, conjuntos y números",
+        "authors": "M. Delgado Pineda y M. J. Muñoz Bouzo",
+        "edition": "2.ª ed. revisada y aumentada, Sanz y Torres, 2020 (3.ª ed., 2025, recomendada)",
+        "role": "theory"
+      }
+    ],
+    "hue": "green",
+    "scaleMax": 10,
+    "passMark": 5,
+    "gradeBands": [
+      {
+        "label": "Sobresaliente",
+        "min": 9
+      },
+      {
+        "label": "Notable",
+        "min": 7
+      },
+      {
+        "label": "Aprobado",
+        "min": 5
+      },
+      {
+        "label": "Suspenso",
+        "min": 0
+      }
+    ],
+    "target": null,
+    "sitting": "ordinary",
+    "finalRule": {
+      "ordinary": "taken(PEC) && PP >= 4.5 ? max(PP, 0.9*PP + 0.1*PEC) : PP",
+      "extraordinary": "PP"
+    },
+    "structure": {
+      "version": 2,
+      "topics": [
+        {
+          "id": "LO",
+          "title": "Nociones de lógica",
+          "subtopics": [
+            {
+              "id": "LO.01",
+              "title": "Lenguaje proposicional",
+              "prerequisites": [],
+              "items": [
+                {
+                  "id": "LO.01.1",
+                  "kind": "definition",
+                  "title": "Proposición, conectivas y tablas de verdad",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "LO.01.2",
+                  "kind": "definition",
+                  "title": "Tautología, contradicción y equivalencia lógica",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "LO.01.3",
+                  "kind": "theorem",
+                  "title": "Leyes de De Morgan y otras equivalencias lógicas",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "LO.02",
+              "title": "Cuantificadores",
+              "prerequisites": [
+                "LO.01"
+              ],
+              "items": [
+                {
+                  "id": "LO.02.1",
+                  "kind": "definition",
+                  "title": "Predicado; cuantificadores universal y existencial",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "LO.02.2",
+                  "kind": "theorem",
+                  "title": "Negación de proposiciones cuantificadas",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "LO.03",
+              "title": "Métodos de demostración",
+              "prerequisites": [
+                "LO.02"
+              ],
+              "items": [
+                {
+                  "id": "LO.03.1",
+                  "kind": "technique",
+                  "title": "Demostración directa y por el contrarrecíproco",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "LO.03.2",
+                  "kind": "technique",
+                  "title": "Reducción al absurdo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "LO.03.3",
+                  "kind": "technique",
+                  "title": "Refutar con un contraejemplo",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "LO.03.4",
+                  "kind": "exercise",
+                  "title": "Demostrar enunciados elementales",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "CJ",
+          "title": "Conjuntos",
+          "subtopics": [
+            {
+              "id": "CJ.01",
+              "title": "Conjuntos y operaciones",
+              "prerequisites": [
+                "LO.02"
+              ],
+              "items": [
+                {
+                  "id": "CJ.01.1",
+                  "kind": "definition",
+                  "title": "Conjunto, pertenencia, inclusión y conjunto vacío",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "CJ.01.2",
+                  "kind": "definition",
+                  "title": "Unión, intersección, diferencia y complementario",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "CJ.01.3",
+                  "kind": "theorem",
+                  "title": "Propiedades de las operaciones; leyes de De Morgan para conjuntos",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "CJ.02",
+              "title": "Partes de un conjunto y producto cartesiano",
+              "prerequisites": [
+                "CJ.01"
+              ],
+              "items": [
+                {
+                  "id": "CJ.02.1",
+                  "kind": "definition",
+                  "title": "Conjunto de las partes $\\mathcal P(A)$",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "CJ.02.2",
+                  "kind": "definition",
+                  "title": "Familias de conjuntos; uniones e intersecciones arbitrarias",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "CJ.02.3",
+                  "kind": "definition",
+                  "title": "Producto cartesiano",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "RA",
+          "title": "Relaciones y aplicaciones entre conjuntos",
+          "subtopics": [
+            {
+              "id": "RA.01",
+              "title": "Aplicaciones",
+              "prerequisites": [
+                "CJ.02"
+              ],
+              "items": [
+                {
+                  "id": "RA.01.1",
+                  "kind": "definition",
+                  "title": "Aplicación; imagen y antiimagen",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "RA.01.2",
+                  "kind": "definition",
+                  "title": "Aplicaciones inyectivas, sobreyectivas y biyectivas",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "RA.01.3",
+                  "kind": "theorem",
+                  "title": "Composición de aplicaciones; inversa de una biyección",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "RA.01.4",
+                  "kind": "theorem",
+                  "title": "Imágenes y antiimágenes de uniones e intersecciones",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "RA.02",
+              "title": "Relaciones de equivalencia",
+              "prerequisites": [
+                "CJ.02"
+              ],
+              "items": [
+                {
+                  "id": "RA.02.1",
+                  "kind": "definition",
+                  "title": "Relación binaria y sus propiedades",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "RA.02.2",
+                  "kind": "definition",
+                  "title": "Relación de equivalencia y clase de equivalencia",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "RA.02.3",
+                  "kind": "theorem",
+                  "title": "Las clases de equivalencia forman una partición",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "RA.02.4",
+                  "kind": "definition",
+                  "title": "Conjunto cociente",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "RA.02.5",
+                  "kind": "theorem",
+                  "title": "Descomposición canónica de una aplicación",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            },
+            {
+              "id": "RA.03",
+              "title": "Relaciones de orden",
+              "prerequisites": [
+                "RA.02"
+              ],
+              "items": [
+                {
+                  "id": "RA.03.1",
+                  "kind": "definition",
+                  "title": "Orden parcial y orden total; diagramas de Hasse",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "RA.03.2",
+                  "kind": "definition",
+                  "title": "Máximo, mínimo, maximales y minimales",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "RA.03.3",
+                  "kind": "definition",
+                  "title": "Cotas, supremo e ínfimo",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "RA.03.4",
+                  "kind": "exercise",
+                  "title": "Determinar cotas, supremo e ínfimo de un subconjunto",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "RA.04",
+              "title": "Cardinalidad",
+              "prerequisites": [
+                "RA.01"
+              ],
+              "items": [
+                {
+                  "id": "RA.04.1",
+                  "kind": "definition",
+                  "title": "Conjuntos equipotentes; conjunto finito e infinito",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "RA.04.2",
+                  "kind": "definition",
+                  "title": "Conjunto numerable",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "RA.04.3",
+                  "kind": "theorem",
+                  "title": "$\\mathbb Q$ es numerable y $\\mathbb R$ no lo es (argumento diagonal)",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "EA",
+          "title": "Operaciones internas. Estructuras algebraicas",
+          "subtopics": [
+            {
+              "id": "EA.01",
+              "title": "Operaciones internas",
+              "prerequisites": [
+                "RA.01"
+              ],
+              "items": [
+                {
+                  "id": "EA.01.1",
+                  "kind": "definition",
+                  "title": "Operación interna: asociativa, conmutativa, elemento neutro y simétrico",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EA.01.2",
+                  "kind": "theorem",
+                  "title": "Unicidad del elemento neutro y del simétrico",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "EA.02",
+              "title": "Grupos, anillos y cuerpos",
+              "prerequisites": [
+                "EA.01"
+              ],
+              "items": [
+                {
+                  "id": "EA.02.1",
+                  "kind": "definition",
+                  "title": "Grupo y subgrupo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EA.02.2",
+                  "kind": "definition",
+                  "title": "Anillo y cuerpo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EA.02.3",
+                  "kind": "example",
+                  "title": "$\\mathbb Z$, $\\mathbb Z_n$, $\\mathbb Q$, $\\mathbb R$, $\\mathbb C$ y las matrices cuadradas",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EA.02.4",
+                  "kind": "definition",
+                  "title": "Homomorfismo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "NE",
+          "title": "Los números naturales y los números enteros",
+          "subtopics": [
+            {
+              "id": "NE.01",
+              "title": "Números naturales e inducción",
+              "prerequisites": [
+                "LO.03"
+              ],
+              "items": [
+                {
+                  "id": "NE.01.1",
+                  "kind": "definition",
+                  "title": "Axiomas de Peano",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NE.01.2",
+                  "kind": "theorem",
+                  "title": "Principio de inducción",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "NE.01.3",
+                  "kind": "exercise",
+                  "title": "Demostraciones por inducción",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "NE.02",
+              "title": "Números enteros",
+              "prerequisites": [
+                "NE.01",
+                "RA.02"
+              ],
+              "items": [
+                {
+                  "id": "NE.02.1",
+                  "kind": "definition",
+                  "title": "Construcción de $\\mathbb Z$ como cociente de $\\mathbb N\\times\\mathbb N$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "NE.02.2",
+                  "kind": "theorem",
+                  "title": "Algoritmo de la división",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "NE.03",
+              "title": "Divisibilidad",
+              "prerequisites": [
+                "NE.02"
+              ],
+              "items": [
+                {
+                  "id": "NE.03.1",
+                  "kind": "definition",
+                  "title": "Divisibilidad, mcd y mcm; números primos entre sí",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "NE.03.2",
+                  "kind": "technique",
+                  "title": "Algoritmo de Euclides",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "NE.03.3",
+                  "kind": "theorem",
+                  "title": "Identidad de Bézout",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NE.03.4",
+                  "kind": "theorem",
+                  "title": "Teorema fundamental de la aritmética",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "NR",
+          "title": "Los números racionales y los números reales",
+          "subtopics": [
+            {
+              "id": "NR.01",
+              "title": "Números racionales",
+              "prerequisites": [
+                "NE.02",
+                "RA.02"
+              ],
+              "items": [
+                {
+                  "id": "NR.01.1",
+                  "kind": "definition",
+                  "title": "Construcción de $\\mathbb Q$ como conjunto cociente",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "NR.01.2",
+                  "kind": "theorem",
+                  "title": "$\\mathbb Q$ es un cuerpo ordenado",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NR.01.3",
+                  "kind": "theorem",
+                  "title": "$\\sqrt 2\\notin\\mathbb Q$",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "NR.02",
+              "title": "Números reales",
+              "prerequisites": [
+                "NR.01",
+                "RA.03"
+              ],
+              "items": [
+                {
+                  "id": "NR.02.1",
+                  "kind": "definition",
+                  "title": "Axioma del supremo (completitud)",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NR.02.2",
+                  "kind": "theorem",
+                  "title": "Propiedad arquimediana",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NR.02.3",
+                  "kind": "theorem",
+                  "title": "Densidad de $\\mathbb Q$ y de $\\mathbb R\\setminus\\mathbb Q$ en $\\mathbb R$",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NR.02.4",
+                  "kind": "definition",
+                  "title": "Valor absoluto e intervalos",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "NR.02.5",
+                  "kind": "exercise",
+                  "title": "Calcular el supremo y el ínfimo de conjuntos de números reales",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "NC",
+          "title": "Los números complejos",
+          "subtopics": [
+            {
+              "id": "NC.01",
+              "title": "Forma binómica",
+              "prerequisites": [
+                "NR.02"
+              ],
+              "items": [
+                {
+                  "id": "NC.01.1",
+                  "kind": "definition",
+                  "title": "El cuerpo $\\mathbb C$; forma binómica, conjugado y módulo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "NC.01.2",
+                  "kind": "theorem",
+                  "title": "Propiedades del conjugado y del módulo",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "NC.02",
+              "title": "Forma polar y raíces",
+              "prerequisites": [
+                "NC.01"
+              ],
+              "items": [
+                {
+                  "id": "NC.02.1",
+                  "kind": "definition",
+                  "title": "Argumento; formas polar y trigonométrica",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "NC.02.2",
+                  "kind": "theorem",
+                  "title": "Fórmula de De Moivre",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NC.02.3",
+                  "kind": "technique",
+                  "title": "Raíces $n$-ésimas de un número complejo",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "NC.02.4",
+                  "kind": "exercise",
+                  "title": "Resolver ecuaciones en $\\mathbb C$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "retiredIds": []
+    },
+    "pastPapers": []
+  },
+  "assessments": [
+    {
+      "optional": false,
+      "intendToTake": true,
+      "date": null,
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "4 ejercicios de desarrollo, teóricos y/o prácticos",
+      "durationMinutes": 120,
+      "calculator": "none",
+      "materials": "Ninguno",
+      "coversTopicIds": [],
+      "courseworkMinutes": null,
+      "sections": [
+        {
+          "id": "D",
+          "title": "Desarrollo",
+          "kind": "written",
+          "maxPoints": 10,
+          "questions": 4,
+          "choose": null,
+          "mcq": null
+        }
+      ],
+      "sectionRule": null,
+      "result": null,
+      "expected": null,
+      "id": "PP",
+      "title": "Prueba Presencial",
+      "kind": "exam"
+    },
+    {
+      "optional": true,
+      "intendToTake": true,
+      "date": "2026-12-15",
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "Test de 5 preguntas de 3 opciones",
+      "durationMinutes": null,
+      "calculator": null,
+      "materials": "",
+      "coversTopicIds": [
+        "LO",
+        "CJ",
+        "RA",
+        "EA",
+        "NE",
+        "NR"
+      ],
+      "courseworkMinutes": null,
+      "sections": [
+        {
+          "id": "T",
+          "title": "Test",
+          "kind": "mcq",
+          "maxPoints": 10,
+          "questions": 5,
+          "choose": null,
+          "mcq": {
+            "options": 3,
+            "correct": 2,
+            "wrong": -1,
+            "blank": 0
+          }
+        }
+      ],
+      "sectionRule": null,
+      "result": null,
+      "expected": null,
+      "id": "PEC",
+      "title": "PEC: cuestionario en línea",
+      "kind": "online_test"
+    }
+  ]
+}

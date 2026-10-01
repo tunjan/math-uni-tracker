@@ -1,14 +1,16 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Menu, Moon, Sun } from 'lucide-react'
+import { Menu, Moon, Pencil, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ComingSoon } from '@/components/ComingSoon'
+import { EditCourseDialog } from '@/components/course/EditCourseDialog'
+import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
 import { CourseTabs } from '@/components/layout/CourseTabs'
 import { SemesterDialog } from '@/components/layout/SemesterDialog'
 import { Sidebar } from '@/components/Sidebar'
 import { Tag } from '@/components/Tag'
 import { requestPersistence } from '@/lib/db'
-import { useCourse, useCourseProgress, useCourses, useCurrentSemester, useSemesters } from '@/lib/store/hooks'
+import { useAssessments, useCourse, useCourseProgress, useCourses, useCurrentSemester, useSemesters } from '@/lib/store/hooks'
 import { useTheme } from '@/lib/theme'
 import { navigate, useRoute, type GlobalView, type Route } from '@/routes'
 
@@ -26,12 +28,15 @@ export default function App() {
   const route = useRoute()
   const [navOpen, setNavOpen] = useState(false)
   const [semesterDialog, setSemesterDialog] = useState<'new' | 'edit' | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const semesters = useSemesters()
   const routeCourse = useCourse(route.kind === 'course' ? route.key : null)
   const [semester, chooseSemester] = useCurrentSemester(semesters, routeCourse?.semesterId ?? null)
   const courses = useCourses(semester?.id ?? null)
   const progress = useCourseProgress(courses)
+  const routeAssessments = useAssessments(routeCourse?.key ?? null)
 
   if (semesters === undefined) return <div className="grid h-dvh place-items-center text-muted-foreground">Loading…</div>
 
@@ -43,7 +48,7 @@ export default function App() {
     <Sidebar semesters={semesters} semester={semester} onChooseSemester={pickSemester}
       onNewSemester={() => setSemesterDialog('new')} onEditSemester={() => setSemesterDialog('edit')}
       courses={courses ?? []} progress={progress} route={route} onNavigate={() => setNavOpen(false)}
-      onImportCourse={() => undefined} />
+      onImportCourse={() => { setNavOpen(false); setImportOpen(true) }} />
   )
 
   const title: ReactNode = route.kind === 'global' ? GLOBAL_TITLES[route.view] : routeCourse ? (
@@ -68,6 +73,11 @@ export default function App() {
             <Menu />
           </Button>
           <h1 className="min-w-0 flex-1 truncate text-[15px] font-semibold">{title}</h1>
+          {routeCourse && (
+            <Button variant="ghost" size="icon" onClick={() => setEditOpen(true)} aria-label="Course details" title="Course details, grade formula, export">
+              <Pencil />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
@@ -80,6 +90,10 @@ export default function App() {
       </main>
       <SemesterDialog open={semesterDialog !== null} onOpenChange={(o) => !o && setSemesterDialog(null)}
         semester={semesterDialog === 'edit' ? semester : null} onSaved={(s) => s && pickSemester(s.id)} />
+      {semester && <ImportCourseDialog open={importOpen} onOpenChange={setImportOpen} semesterId={semester.id} semesterName={semester.name} />}
+      {routeCourse && routeAssessments && (
+        <EditCourseDialog course={routeCourse} assessments={routeAssessments} open={editOpen} onOpenChange={setEditOpen} />
+      )}
     </div>
   )
 }
@@ -108,7 +122,13 @@ function Content({ route, courseFound }: { route: Route; courseFound: boolean })
       case 'settings': return <ComingSoon title="Settings" phase="2.1">API key, models, availability and data safety.</ComingSoon>
     }
   }
-  if (!courseFound) return <ComingSoon title={`No course ${route.key}`} phase="1.4">Import a course file from the sidebar.</ComingSoon>
+  if (!courseFound) {
+    return (
+      <div className="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
+        <p>There is no course {route.key}. Import a course file from the sidebar (the <span className="whitespace-nowrap">file icon</span> next to Courses).</p>
+      </div>
+    )
+  }
   return (
     <>
       <CourseTabs courseKey={route.key} tab={route.tab} />

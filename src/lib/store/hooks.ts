@@ -3,12 +3,14 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import type { Course, Semester } from '../schema/course'
 import { qualify } from '../ids'
 import { db } from './db'
-import { listSemesters } from './courses'
+import { listAssessments, listSemesters } from './courses'
 
 export const useSemesters = () => useLiveQuery(listSemesters, [])
 
 export const useCourses = (semesterId: string | null) =>
   useLiveQuery(async () => (semesterId ? db.courses.where('semesterId').equals(semesterId).sortBy('key') : []), [semesterId])
+
+export const useAssessments = (key: string | null) => useLiveQuery(async () => (key ? listAssessments(key) : []), [key])
 
 export const useCourse = (key: string | null) => useLiveQuery(async () => (key ? ((await db.courses.get(key)) ?? null) : null), [key])
 
