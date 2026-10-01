@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 
 export const COURSE_TABS = ['grid', 'plan', 'docs', 'exams', 'dash'] as const
 export type CourseTab = (typeof COURSE_TABS)[number]
-export const GLOBAL_VIEWS = ['today', 'calendar', 'dashboard', 'documents', 'settings'] as const
+export const GLOBAL_VIEWS = ['milestones', 'today', 'calendar', 'dashboard', 'documents', 'settings'] as const
 export type GlobalView = (typeof GLOBAL_VIEWS)[number]
 
 export type Route = { kind: 'global'; view: GlobalView } | { kind: 'course'; key: string; tab: CourseTab } | { kind: 'setup'; draftId: string | null } | { kind: 'doc'; id: string } | { kind: 'grading'; id: string }
 
-export const DEFAULT_ROUTE: Route = { kind: 'global', view: 'today' }
+export const DEFAULT_ROUTE: Route = { kind: 'global', view: 'milestones' }
 
-/** '#/today', '#/c/ALI/grid'. Anything unknown falls back to Today. */
+/** '#/milestones', '#/c/ALI/grid'. Anything unknown falls back to Milestones. */
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean)
   if (parts[0] === 'c' && parts[1] && /^[A-Z][A-Z0-9]{1,11}$/.test(parts[1])) {

@@ -17,6 +17,8 @@ export const Settings = z.strictObject({
   /** When you can study. */
   availability: Availability.default(DEFAULT_AVAILABILITY),
   planParams: PlanParams.default(PlanParams.parse({})),
+  /** Daily sessions (Today, Calendar). Off: milestones only. */
+  dailyPlan: z.boolean().default(false),
 })
 
 export const DEFAULT_SETTINGS: z.infer<typeof Settings> = {
@@ -25,6 +27,7 @@ export const DEFAULT_SETTINGS: z.infer<typeof Settings> = {
   lastExportAt: null,
   availability: DEFAULT_AVAILABILITY,
   planParams: PlanParams.parse({}),
+  dailyPlan: false,
 }
 
 export const AiCall = z.strictObject({

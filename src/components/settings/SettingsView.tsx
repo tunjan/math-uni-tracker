@@ -19,17 +19,38 @@ import { AvailabilityCard, PlanningCard } from './AvailabilityCard'
 import { DataCard } from './DataCard'
 
 export function SettingsView() {
+  const daily = useLiveQuery(async () => (await getSettings()).dailyPlan, [])
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto max-w-3xl space-y-5 p-3 sm:p-6">
         <ApiKeyCard />
         <ModelsCard />
         <AvailabilityCard />
-        <PlanningCard />
+        <PlanningModeCard />
+        {daily && <PlanningCard />}
         <DataCard />
         <CallLog />
       </div>
     </div>
+  )
+}
+
+/** Milestones only (the default), or milestones plus a day-by-day session plan. */
+function PlanningModeCard() {
+  const settings = useLiveQuery(getSettings, [])
+  if (!settings) return null
+  return (
+    <Panel title="Planning">
+      <div className="space-y-2 px-4 py-3">
+        <p className="text-muted-foreground">
+          Milestones give every subtopic a target date and show whether you are on pace. Your hours above set how the dates are spread.
+        </p>
+        <label className="flex items-start gap-2">
+          <input type="checkbox" className="mt-1" checked={settings.dailyPlan} onChange={(e) => void updateSettings({ dailyPlan: e.target.checked }).catch(reportError)} />
+          <span>Also plan day-by-day sessions <span className="text-muted-foreground">(Today and Calendar: learn, practise, self-tests, spaced reviews and mocks, in time slots; useful in exam weeks)</span></span>
+        </label>
+      </div>
+    </Panel>
   )
 }
 

@@ -4,6 +4,7 @@ import { issues } from '../schema/common'
 import type { Assessment, Course, Semester } from '../schema/course'
 import type { DocumentMeta } from '../schema/documents'
 import type { Grading } from '../schema/grading'
+import type { PaceBaseline } from '../schema/milestones'
 import type { ItemProgress, ReviewEvent, SubtopicProgress } from '../schema/progress'
 import type { PlanRun, StudySession } from '../schema/sessions'
 import type { AiCall, Settings } from '../schema/settings'
@@ -76,6 +77,7 @@ export type PlannerDb = Dexie & {
   cache: EntityTable<CacheRow, 'key'>
   drafts: EntityTable<SetupDraft, 'id'>
   gradings: EntityTable<Grading, 'id'>
+  paces: EntityTable<PaceBaseline, 'courseKey'>
 }
 
 export function openPlannerDb(name = DB_NAME): PlannerDb {
@@ -98,6 +100,7 @@ export function openPlannerDb(name = DB_NAME): PlannerDb {
   })
   db.version(2).stores({ cache: '&key', drafts: '&id, courseKey' })
   db.version(3).stores({ gradings: '&id, courseKey, createdAt' })
+  db.version(4).stores({ paces: '&courseKey' })
   return db
 }
 

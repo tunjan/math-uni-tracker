@@ -6,6 +6,10 @@ import { activeAssessments } from '@/lib/scheduler/plan'
 import { proposePlan, type Proposal } from '@/lib/store/planning'
 import type { Course } from '@/lib/schema/course'
 import { db } from '@/lib/store/db'
+import { getSettings } from '@/lib/store/settings'
+import type { CourseIndex } from '@/lib/course-index'
+import type { Derived } from '@/lib/derive'
+import { CourseMilestones } from '../milestones/CourseMilestones'
 import { Button } from '@/components/ui/button'
 import { Panel } from '../Panel'
 import { FeasibilityList } from './FeasibilityList'
@@ -16,10 +20,34 @@ import { WeekView } from './WeekView'
 const TYPES = ['learn', 'practise', 'retrieval', 'review', 'mock', 'mock_review', 'coursework', 'buffer'] as const
 const MARK = { blue: 'rgb(45 127 249)', purple: 'rgb(139 70 255)', orange: 'rgb(255 111 44)', teal: 'rgb(32 217 210)', red: 'rgb(248 43 96)', pink: 'rgb(255 8 194)', yellow: 'rgb(252 180 0)', gray: 'rgb(102 102 102)', cyan: 'rgb(24 191 255)', green: 'rgb(32 201 51)' } as const
 
+/** The course's milestones; with daily sessions on, also the timeline and the week of sessions. */
+export function PlanTab({ course, index, derived, readOnly, onOpenSubtopic }: { course: Course; index: CourseIndex; derived: Derived; readOnly: boolean; onOpenSubtopic: (id: string) => void }) {
+  const daily = useLiveQuery(async () => (await getSettings()).dailyPlan, [])
+  const [view, setView] = useState<'milestones' | 'timeline' | 'week'>('milestones')
+  const milestones = (
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-4xl space-y-5 p-3 sm:p-6">
+        <CourseMilestones course={course} index={index} derived={derived} readOnly={readOnly} onOpenSubtopic={onOpenSubtopic} />
+      </div>
+    </div>
+  )
+  if (daily === undefined) return null
+  if (!daily) return milestones
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 gap-1 border-b border-border px-2 py-1.5 sm:px-3">
+        <Button size="sm" variant={view === 'milestones' ? 'secondary' : 'ghost'} onClick={() => setView('milestones')}>Milestones</Button>
+        <Button size="sm" variant={view === 'timeline' ? 'secondary' : 'ghost'} onClick={() => setView('timeline')}>Timeline</Button>
+        <Button size="sm" variant={view === 'week' ? 'secondary' : 'ghost'} onClick={() => setView('week')}>Week</Button>
+      </div>
+      {view === 'milestones' ? milestones : view === 'week' ? <WeekView courseKey={course.key} /> : <Timeline course={course} />}
+    </div>
+  )
+}
+
 /** The course timeline: planned hours per week by kind of work, with its assessments, and whether it fits. */
-export function PlanTab({ course }: { course: Course }) {
+function Timeline({ course }: { course: Course }) {
   const today = todayISO()
-  const [view, setView] = useState<'timeline' | 'week'>('timeline')
   const { titles } = useCourseLookups()
   const sessions = useLiveQuery(() => db.sessions.where('courseKey').equals(course.key).toArray(), [course.key])
   const assessments = useLiveQuery(() => db.assessments.where('courseKey').equals(course.key).toArray(), [course.key])
@@ -37,12 +65,6 @@ export function PlanTab({ course }: { course: Course }) {
   const max = Math.max(60, ...[...weeks.values()].map((r) => Object.values(r).reduce((a, b) => a + b, 0)))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 gap-1 border-b border-border px-2 py-1.5 sm:px-3">
-        <Button size="sm" variant={view === 'timeline' ? 'secondary' : 'ghost'} onClick={() => setView('timeline')}>Timeline</Button>
-        <Button size="sm" variant={view === 'week' ? 'secondary' : 'ghost'} onClick={() => setView('week')}>Week</Button>
-      </div>
-      {view === 'week' ? <WeekView courseKey={course.key} /> : (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-4xl space-y-5 p-3 sm:p-6">
             <Panel title="Does it fit?" aside={<Button size="xs" variant="outline" onClick={() => void proposePlan(today, null).then(setCheck)}>Check now</Button>}>
@@ -84,7 +106,5 @@ export function PlanTab({ course }: { course: Course }) {
             </Panel>
           </div>
         </div>
-      )}
-    </div>
   )
 }

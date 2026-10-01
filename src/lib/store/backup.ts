@@ -4,6 +4,7 @@ import { Assessment, Course, Semester } from '../schema/course'
 import { CourseKey, ISODateTime } from '../schema/common'
 import { DocumentMeta } from '../schema/documents'
 import { Grading } from '../schema/grading'
+import { PaceBaseline } from '../schema/milestones'
 import { ItemProgress, ReviewEvent, SubtopicProgress } from '../schema/progress'
 import { PlanRun, StudySession } from '../schema/sessions'
 import { AiCall, Settings } from '../schema/settings'
@@ -23,7 +24,7 @@ const StructureVersion = z.strictObject({ id: z.string(), courseKey: CourseKey, 
 /** The tables a backup holds, each with the schema every row must pass on import. */
 const TABLES = {
   semesters: Semester, courses: Course, assessments: Assessment, items: ItemProgress, subtopics: SubtopicProgress, reviews: ReviewEvent,
-  documents: DocumentMeta, sessions: StudySession, plans: PlanRun, aiCalls: AiCall, structureVersions: StructureVersion, gradings: Grading,
+  documents: DocumentMeta, sessions: StudySession, plans: PlanRun, aiCalls: AiCall, structureVersions: StructureVersion, gradings: Grading, paces: PaceBaseline,
 } as const
 type TableName = keyof typeof TABLES
 type Rows = { [K in TableName]: z.infer<(typeof TABLES)[K]>[] }
@@ -146,18 +147,19 @@ const ProgressFile = z.strictObject({
   reviews: z.array(ReviewEvent),
   sessions: z.array(StudySession),
   gradings: z.array(Grading),
+  paces: z.array(PaceBaseline).default([]),
   results: z.array(z.strictObject({ courseKey: CourseKey, id: z.string(), result: z.number().nullable(), expected: z.number().nullable() })),
 })
 export type ProgressFile = z.infer<typeof ProgressFile>
 
 /** Your progress without course structures or documents: small, readable, and enough to carry on elsewhere. */
 export async function exportProgress(): Promise<ProgressFile> {
-  const [courses, items, subtopics, reviews, sessions, gradings, assessments] = await Promise.all([
-    db.courses.toArray(), db.items.toArray(), db.subtopics.toArray(), db.reviews.toArray(), db.sessions.toArray(), db.gradings.toArray(), db.assessments.toArray(),
+  const [courses, items, subtopics, reviews, sessions, gradings, assessments, paces] = await Promise.all([
+    db.courses.toArray(), db.items.toArray(), db.subtopics.toArray(), db.reviews.toArray(), db.sessions.toArray(), db.gradings.toArray(), db.assessments.toArray(), db.paces.toArray(),
   ])
   return {
     schema: PROGRESS_SCHEMA, exportedAt: nowISO(), courses: courses.map((c) => ({ key: c.key, title: c.title })),
-    items, subtopics, reviews, sessions, gradings, results: assessments.map((a) => ({ courseKey: a.courseKey, id: a.id, result: a.result, expected: a.expected })),
+    items, subtopics, reviews, sessions, gradings, paces, results: assessments.map((a) => ({ courseKey: a.courseKey, id: a.id, result: a.result, expected: a.expected })),
   }
 }
 
@@ -181,14 +183,15 @@ export async function readProgress(text: string): Promise<ProgressPreview> {
 export async function restoreProgress(f: ProgressFile, keys: string[]): Promise<void> {
   const take = new Set(keys)
   const mine = <T extends { courseKey: string | null }>(rows: T[]) => rows.filter((r) => r.courseKey !== null && take.has(r.courseKey))
-  await db.transaction('rw', [db.items, db.subtopics, db.reviews, db.sessions, db.gradings, db.assessments], async () => {
-    for (const t of [db.items, db.subtopics, db.reviews, db.gradings] as const) await t.where('courseKey').anyOf([...take]).delete()
+  await db.transaction('rw', [db.items, db.subtopics, db.reviews, db.sessions, db.gradings, db.assessments, db.paces], async () => {
+    for (const t of [db.items, db.subtopics, db.reviews, db.gradings, db.paces] as const) await t.where('courseKey').anyOf([...take]).delete()
     await db.sessions.where('courseKey').anyOf([...take]).delete()
     await db.items.bulkPut(mine(f.items))
     await db.subtopics.bulkPut(mine(f.subtopics))
     await db.reviews.bulkPut(mine(f.reviews))
     await db.sessions.bulkPut(mine(f.sessions))
     await db.gradings.bulkPut(mine(f.gradings))
+    await db.paces.bulkPut(f.paces.filter((x) => take.has(x.courseKey)))
     for (const r of f.results.filter((x) => take.has(x.courseKey))) {
       const a = await db.assessments.get([r.courseKey, r.id])
       const next = a && Assessment.safeParse({ ...a, result: r.result, expected: r.expected })

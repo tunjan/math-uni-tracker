@@ -8,8 +8,8 @@ describe('routes', () => {
     expect(parseRoute('#/c/LMCN')).toEqual({ kind: 'course', key: 'LMCN', tab: 'grid' })
   })
 
-  it('falls back to Today for anything unknown', () => {
-    for (const h of ['', '#', '#/', '#/nope', '#/c/ali/grid', '#/c/', '#/doc/', '#/doc/x']) expect(parseRoute(h)).toEqual({ kind: 'global', view: 'today' })
+  it('falls back to Milestones for anything unknown', () => {
+    for (const h of ['', '#', '#/', '#/nope', '#/c/ali/grid', '#/c/', '#/doc/', '#/doc/x']) expect(parseRoute(h)).toEqual({ kind: 'global', view: 'milestones' })
     expect(parseRoute('#/c/MD/whatever')).toEqual({ kind: 'course', key: 'MD', tab: 'grid' })
   })
 

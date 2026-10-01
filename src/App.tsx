@@ -6,6 +6,7 @@ import { DocView } from '@/components/documents/DocView'
 import { DocumentsView } from '@/components/documents/DocumentsView'
 import { GradingView } from '@/components/grading/GradingView'
 import { SemesterDashboard } from '@/components/dashboard/SemesterDashboard'
+import { MilestonesView } from '@/components/milestones/MilestonesView'
 import { CourseView } from '@/components/course/CourseView'
 import { EditCourseDialog } from '@/components/course/EditCourseDialog'
 import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
@@ -25,6 +26,7 @@ import { useTheme } from '@/lib/theme'
 import { navigate, useRoute, type GlobalView, type Route } from '@/routes'
 
 const GLOBAL_TITLES: Record<GlobalView, string> = {
+  milestones: 'Milestones',
   today: 'Today',
   calendar: 'Calendar',
   dashboard: 'Dashboard',
@@ -131,6 +133,7 @@ function Welcome({ onCreate }: { onCreate: () => void }) {
 function Content({ route, course, semester, courses }: { route: Exclude<Route, { kind: 'setup' | 'doc' | 'grading' }>; course: Course | null | undefined; semester: Semester | null; courses: Course[] }) {
   if (route.kind === 'global') {
     switch (route.view) {
+      case 'milestones': return <MilestonesView semester={semester} courses={courses} />
       case 'today': return <TodayView />
       case 'calendar': return <WeekView />
       case 'dashboard': return <SemesterDashboard semester={semester} courses={courses} />
