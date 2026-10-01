@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { BookOpen, ClipboardCheck, ExternalLink, FileText, ListTree, Pencil, Plus, Upload } from 'lucide-react'
+import { BookOpen, ClipboardCheck, ExternalLink, FileText, ListTree, Pencil, Plus, Sparkles, Upload } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,7 @@ import { formatDate, pct } from '@/lib/format'
 import { KIND_HUE, topicHue } from '@/lib/palette'
 import { cn } from '@/lib/utils'
 import { StarsCell } from './cells'
+import type { PromptKind } from './prompts/PromptDialog'
 import { DocumentDialog, type DocDialogMode } from './documents/DocumentDialog'
 import { formatSize, KIND_TAG, openDoc, SOURCE_LABEL } from './documents/doc-meta'
 import { ConfirmDelete, DeleteButton } from './documents/shared'
@@ -38,6 +39,8 @@ interface Props {
   derived: Derived
   progress: Map<string, ItemProgress>
   subtopicProgress: Map<string, SubtopicProgress>
+  /** Opens the prompt dialog for these local item IDs. */
+  onPrompt: (itemIds: string[], kind: PromptKind) => void
 }
 
 export function SubtopicSheet({ subtopicId, onClose, ...rest }: Props) {
@@ -50,7 +53,7 @@ export function SubtopicSheet({ subtopicId, onClose, ...rest }: Props) {
   )
 }
 
-function SheetBody({ id, courseKey, readOnly, index, derived, progress, subtopicProgress }: Omit<Props, 'subtopicId' | 'onClose'> & { id: string }) {
+function SheetBody({ id, courseKey, readOnly, index, derived, progress, subtopicProgress, onPrompt }: Omit<Props, 'subtopicId' | 'onClose'> & { id: string }) {
   const s = index.subtopics.get(id)
   const d = derived.subtopics.get(id)
   if (!s || !d) return null
@@ -70,6 +73,10 @@ function SheetBody({ id, courseKey, readOnly, index, derived, progress, subtopic
           {d.dateFinished && <span>Completed {formatDate(d.dateFinished)}</span>}
           {r.meanConfidence != null && <span>Mean confidence {r.meanConfidence.toFixed(1)}</span>}
         </SheetDescription>
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="xs" variant="outline" onClick={() => onPrompt(s.items.map((i) => i.id), 'problem_set')}><Sparkles />Problem-set prompt</Button>
+          <Button size="xs" variant="outline" onClick={() => onPrompt(s.items.map((i) => i.id), 'study_notes')}><Sparkles />Study-notes prompt</Button>
+        </div>
         {d.retestFrom && <Tag hue="orange" className="self-start">Retest from {formatDate(d.retestFrom)}</Tag>}
         {d.status === 'warning' && !d.retestFrom && (
           <p className="text-xs text-muted-foreground">

@@ -22,10 +22,10 @@ const ms02 = course.structure.topics[0].subtopics[1]
 const input = (o: Partial<PromptInput> = {}): PromptInput => ({
   course, assessments: file.assessments,
   items: [
-    ...ms01.items.map((i) => ({ ...emptyItemProgress(`ALI:${i.id}`, 'ALI'), dateStarted: '2026-09-01', dateFinished: '2026-09-02' })),
-    { ...emptyItemProgress(`ALI:${ms02.items[1].id}`, 'ALI'), confidence: 1 },
+    ...ms01.items.map((i) => ({ ...emptyItemProgress(`ALI:${i.id}`), dateStarted: '2026-09-01', dateFinished: '2026-09-02' })),
+    { ...emptyItemProgress(`ALI:${ms02.items[1].id}`), confidence: 1 },
   ],
-  subtopics: [{ ...emptySubtopicProgress('ALI:MA.02', 'ALI'), testAttempts: [
+  subtopics: [{ ...emptySubtopicProgress('ALI:MA.02'), testAttempts: [
     { id: 'a', date: '2026-09-20', score: 2, weakPoints: 'pivotes nulos', source: 'manual', gradingId: null, percent: null },
   ] }],
   selected: ms02.items.slice(1, 3).map((i) => `ALI:${i.id}`),

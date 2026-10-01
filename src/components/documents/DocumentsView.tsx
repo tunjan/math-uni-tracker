@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ClipboardPaste, ExternalLink, FileJson, FileText, Image, Link2, Pencil, Search, Upload } from 'lucide-react'
+import { ClipboardCheck, ClipboardPaste, ExternalLink, FileJson, FileText, Image, Link2, Pencil, Search, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EMPTY_FILTER, filterDocuments, type DocFilter } from '@/lib/doc-filter'
@@ -10,6 +10,7 @@ import { reportError } from '@/lib/notify'
 import { DOC_KINDS, DOC_SOURCES, type DocKind, type DocSource, type DocumentMeta } from '@/lib/schema/documents'
 import { db } from '@/lib/store/db'
 import { deleteDocument } from '@/lib/store/documents'
+import { PasteSchemeDialog } from '../prompts/PasteSchemeDialog'
 import { Tag } from '../Tag'
 import { DocumentDialog, type DocDialogMode } from './DocumentDialog'
 import { formatSize, KIND_TAG, openDoc, SOURCE_LABEL } from './doc-meta'
@@ -22,6 +23,7 @@ const selectCls = 'h-7 min-w-0 rounded-md border border-input bg-transparent px-
 export function DocumentsView({ courseKey = null }: { courseKey?: string | null }) {
   const [filter, setFilter] = useState<DocFilter>({ ...EMPTY_FILTER, courseKey })
   const [dialog, setDialog] = useState<DocDialogMode | null>(null)
+  const [paste, setPaste] = useState(false)
   const data = useLiveQuery(async () => {
     const [docs, courses, semesters] = await Promise.all([courseKey ? db.documents.where('courseKey').equals(courseKey).toArray() : db.documents.toArray(), db.courses.toArray(), db.semesters.toArray()])
     const archivedSem = new Set(semesters.filter((s) => s.archived).map((s) => s.id))
@@ -88,6 +90,7 @@ export function DocumentsView({ courseKey = null }: { courseKey?: string | null 
         <span className="flex-1" />
         {canAdd && (
           <>
+            <Button size="sm" variant="ghost" onClick={() => setPaste(true)}><ClipboardCheck />Paste mark scheme</Button>
             <Button size="sm" variant="ghost" onClick={() => setDialog({ kind: 'new', markdown: true, defaults: { courseKey: scopeKey } })}><ClipboardPaste />Paste Markdown</Button>
             <Button size="sm" onClick={() => setDialog({ kind: 'new', defaults: { courseKey: scopeKey } })}><Upload />Add</Button>
           </>
@@ -148,6 +151,7 @@ export function DocumentsView({ courseKey = null }: { courseKey?: string | null 
         )}
       </div>
       <DocumentDialog mode={dialog} onClose={() => setDialog(null)} />
+      <PasteSchemeDialog courseKey={scopeKey} open={paste} onOpenChange={setPaste} />
     </div>
   )
 }

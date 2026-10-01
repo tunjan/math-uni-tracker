@@ -1,8 +1,9 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Lock } from 'lucide-react'
+import { Lock, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DocumentsView } from '@/components/documents/DocumentsView'
+import { PromptDialog, type PromptKind } from '@/components/prompts/PromptDialog'
 import { Dashboard } from '@/components/Dashboard'
 import { Grid, type SaveItem } from '@/components/Grid'
 import { useGrid } from '@/components/grid-model'
@@ -51,6 +52,13 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search)
   const [sheetId, setSheetId] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(() => new Set())
+  const [prompt, setPrompt] = useState<{ itemIds: string[]; kind: PromptKind } | null>(null)
+  const select = (ids: string[], on: boolean) => setSelected((cur) => {
+    const next = new Set(cur)
+    for (const id of ids) if (on) next.add(id); else next.delete(id)
+    return next
+  })
   const { index, progress, subtopicProgress, derived, readOnly } = data
 
   const query = { search: deferredSearch, statuses: prefs.statuses, kinds: prefs.kinds, sort: prefs.sort }
@@ -78,6 +86,14 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
         <>
           <Toolbar index={index} prefs={prefs} setPrefs={setPrefs} search={search} setSearch={setSearch}
             onExpandAll={(v) => table.toggleAllRowsExpanded(v)} filtering={filtering} />
+          {selected.size > 0 && (
+            <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border bg-primary/5 px-2 py-1.5 sm:px-3">
+              <span className="font-medium tabular-nums">{selected.size} item{selected.size === 1 ? '' : 's'} selected</span>
+              <Button size="xs" onClick={() => setPrompt({ itemIds: [...selected], kind: 'problem_set' })}><Sparkles />Problem-set prompt</Button>
+              <Button size="xs" variant="outline" onClick={() => setPrompt({ itemIds: [...selected], kind: 'study_notes' })}><Sparkles />Study-notes prompt</Button>
+              <Button size="xs" variant="ghost" onClick={() => setSelected(new Set())}><X />Clear</Button>
+            </div>
+          )}
           {rows.length === 0 ? (
             <div className="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
               <div>
@@ -87,7 +103,8 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
             </div>
           ) : (
             <Grid table={table} rowHeight={ROW_HEIGHT[prefs.rowHeight]} progress={progress} derived={derived} onOpenSubtopic={setSheetId}
-              sort={prefs.sort} onSort={(sort) => setPrefs({ sort })} saveItem={saveItem} readOnly={readOnly} />
+              sort={prefs.sort} onSort={(sort) => setPrefs({ sort })} saveItem={saveItem} readOnly={readOnly}
+              selected={selected} onSelect={select} />
           )}
         </>
       )}
@@ -99,7 +116,9 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
       {tab === 'docs' && <DocumentsView courseKey={course.key} />}
       {tab === 'exams' && <ExamsView course={course} readOnly={readOnly} />}
       <SubtopicSheet subtopicId={sheetId} onClose={() => setSheetId(null)} courseKey={course.key} readOnly={readOnly}
-        index={index} derived={derived} progress={progress} subtopicProgress={subtopicProgress} />
+        index={index} derived={derived} progress={progress} subtopicProgress={subtopicProgress} onPrompt={(itemIds, kind) => setPrompt({ itemIds, kind })} />
+      <PromptDialog course={course} itemIds={prompt?.itemIds.map((i) => qualify(course.key, i)) ?? []} initial={prompt?.kind} open={prompt !== null}
+        onOpenChange={(o) => !o && setPrompt(null)} />
     </>
   )
 }

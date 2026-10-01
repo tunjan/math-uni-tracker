@@ -107,7 +107,7 @@ ${examBlock(c)}
 1. ${set ? 'The problem set' : 'The mock exam'}: statements only, with marks. All mathematics in LaTeX ($…$ inline, $$…$$ displayed).
 2. Then, under a clear heading, **full worked solutions**: never skip an algebraic step or a step in the logic; justify every claim; point out the common mistakes.
 3. Then the marks allocation per question and part, as a marker would use it.
-${variant === 'with_mock' ? '4. Then the mock exam, its worked solutions and its marks allocation, in the same way.\n5' : '4'}. Finally, the machine-readable mark scheme${variant === 'with_mock' ? 's: one ```json block for the problem set and one for the mock exam' : ' in one ```json block'}, exactly in this format:
+${variant === 'with_mock' ? '4. Then the mock exam, its worked solutions and its marks allocation, in the same way.\n5' : '4'}. Finally, the machine-readable mark scheme${variant === 'with_mock' ? 's: one fenced json code block for the problem set and one for the mock exam' : ' in one fenced json code block'}, exactly in this format:
 
 ${set ? markSchemeFormat(c, 'problem_set') : ''}${variant === 'with_mock' ? '\n\nand for the mock:\n\n' : ''}${mock ? markSchemeFormat(c, 'mock_exam') : ''}
 `

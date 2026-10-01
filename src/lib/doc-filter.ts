@@ -1,4 +1,4 @@
-import { topicOf, unqualify } from './ids'
+import { qualify, subtopicOf, topicOf, unqualify } from './ids'
 import type { DocKind, DocSource, DocumentMeta } from './schema/documents'
 
 export interface DocFilter {
@@ -48,3 +48,11 @@ export function formatOf(file: { name: string; type: string }): DocumentMeta['fo
 }
 
 export const MIME: Record<DocumentMeta['format'], string> = { pdf: 'application/pdf', image: 'image/*', markdown: 'text/markdown', json: 'application/json' }
+
+/** Where documents about these items are filed: their common subtopic, else their common topic, else the course. */
+export function filing(courseKey: string, itemIds: string[]): { topicId: string | null; subtopicId: string | null } {
+  const subs = new Set(itemIds.map((i) => subtopicOf(unqualify(i))))
+  const topics = new Set([...subs].map(topicOf))
+  if (subs.size === 1) return { topicId: null, subtopicId: qualify(courseKey, [...subs][0]) }
+  return { topicId: topics.size === 1 ? [...topics][0] : null, subtopicId: null }
+}

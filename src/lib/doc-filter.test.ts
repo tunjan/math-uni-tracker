@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { docTopic, EMPTY_FILTER, filterDocuments, formatOf } from './doc-filter'
+import { docTopic, EMPTY_FILTER, filterDocuments, filing, formatOf } from './doc-filter'
 import type { DocumentMeta } from './schema/documents'
 
 const doc = (o: Partial<DocumentMeta>): DocumentMeta => ({
@@ -33,5 +33,10 @@ describe('document filters', () => {
   })
   it('recognises the file formats the library stores', () => {
     expect(['a.PDF', 'b.jpg', 'c.md', 'd.json', 'e.docx'].map((name) => formatOf({ name, type: '' }))).toEqual(['pdf', 'image', 'markdown', 'json', null])
+  })
+  it('files documents under the subtopic or topic their items share', () => {
+    expect(filing('ALI', ['ALI:MA.01.1', 'ALI:MA.01.3'])).toEqual({ topicId: null, subtopicId: 'ALI:MA.01' })
+    expect(filing('ALI', ['ALI:MA.01.1', 'ALI:MA.02.1'])).toEqual({ topicId: 'MA', subtopicId: null })
+    expect(filing('ALI', ['ALI:MA.01.1', 'ALI:EV.01.1'])).toEqual({ topicId: null, subtopicId: null })
   })
 })

@@ -619,11 +619,11 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **4.3 Pasted Markdown documents,** *(done)* rendered with KaTeX and GFM tables at `#/doc/<id>`; raw HTML is not rendered and remote images are never fetched (shown as a link), so opening a document contacts nothing.
 
 ### Milestone 5: prompt generator
-- **5.1 `prompts/templates.ts` + context builder (pure).**
+- **5.1 `prompts/templates.ts` + context builder (pure).** *(done)* `src/prompts/templates.ts` is the one file to edit. A mock defaults to the format of the next exam or online test covering the items.
   - Context: course, level, language, base textbook and notation rule; items with IDs; known prerequisites; weak points; past-paper excerpts; the real exam format (sections, MCQ marking, choose-k, duration, calculator).
-- **5.2 Grid row selection.**
-- **5.3 Prompt dialog:** preview, edit, copy.
-- **5.4 Paste mark-scheme JSON:** validated, saved, linked.
+- **5.2 Grid row selection.** *(done)* Checkboxes in the ID column (a topic or subtopic selects its items); a bar offers both prompts. The side sheet has both buttons for its subtopic.
+- **5.3 Prompt dialog:** *(done)* preview, edit, copy; problem set, problem set + mock, mock only, study notes; exam format picker. Nothing is sent anywhere.
+- **5.4 Paste mark-scheme JSON:** *(done)* Documents → Paste mark scheme. Every `markscheme/v1` block in the pasted answer is validated (arithmetic, options, items, course), the real exam's marking wins over the scheme's, and each is saved as a JSON mark-scheme document filed by its items and linked to the whole answer (kept as Markdown).
 
 ### Milestone 6: AI grading
 - **6.1 Grading arithmetic (pure):** MCQ penalties, choose-k, section rules, s(p), attribution, confidence caps.

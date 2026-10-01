@@ -39,9 +39,15 @@ interface CellCtx {
   activate: (c: Cursor) => void
   edit: (c: Cursor) => void
   stopEditing: () => void
+  /** Local item IDs chosen for a prompt. */
+  selected: Set<string>
+  select: (itemIds: string[], on: boolean) => void
 }
 
-export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort, onSort, saveItem, readOnly }: {
+/** The item IDs at or under a row. */
+const leafItems = (r: GridRow): string[] => (r.type === 'item' ? [r.id] : (r.subRows ?? []).flatMap(leafItems))
+
+export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort, onSort, saveItem, readOnly, selected, onSelect }: {
   table: GridTable
   saveItem: SaveItem
   /** Archived course or semester: everything shows, nothing edits. */
@@ -52,6 +58,8 @@ export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort
   onOpenSubtopic: (id: string) => void
   sort: Query['sort']
   onSort: (sort: Query['sort']) => void
+  selected: Set<string>
+  onSelect: (itemIds: string[], on: boolean) => void
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [active, setActiveState] = useState<Cursor | null>(null)
@@ -102,6 +110,8 @@ export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort
       setEditing(true)
     },
     stopEditing: () => setEditing(false),
+    selected,
+    select: onSelect,
   }
 
   // Return keyboard focus to the grid once an editor closes (after it has unmounted).
@@ -251,12 +261,23 @@ function GridRowView({ row, style, height, ctx }: { row: Row<GridRow>; style: CS
 function renderCell(columnId: string, row: Row<GridRow>, ctx: CellCtx, editing: boolean) {
   const r = row.original
   switch (columnId) {
-    case 'id':
-      return r.type === 'topic' && r.hue ? (
-        <Tag hue={r.hue} link className="font-semibold">{r.id}</Tag>
-      ) : (
-        <span className={cn('truncate tabular-nums', r.type === 'item' && 'text-muted-foreground')}>{r.id}</span>
+    case 'id': {
+      const leaves = leafItems(r)
+      const on = leaves.filter((i) => ctx.selected.has(i)).length
+      return (
+        <>
+          <input type="checkbox" tabIndex={-1} aria-label={`Select ${r.id} for a prompt`} checked={on > 0 && on === leaves.length}
+            ref={(el) => { if (el) el.indeterminate = on > 0 && on < leaves.length }}
+            onMouseDown={(e) => e.stopPropagation()} onChange={(e) => ctx.select(leaves, e.target.checked)}
+            className={cn('mr-1.5 size-3.5 shrink-0 accent-primary', !ctx.selected.size && 'opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100')} />
+          {r.type === 'topic' && r.hue ? (
+            <Tag hue={r.hue} link className="font-semibold">{r.id}</Tag>
+          ) : (
+            <span className={cn('truncate tabular-nums', r.type === 'item' && 'text-muted-foreground')}>{r.id}</span>
+          )}
+        </>
       )
+    }
     case 'title':
       return (
         <div className="flex w-full min-w-0 items-center gap-1" style={{ paddingLeft: row.depth * 16 }}>

@@ -70,7 +70,7 @@ export function importMarkScheme(json: unknown, course: Course, assessments: Ass
     if (!a) {
       warnings.push(`${course.key} has no assessment ${scheme.assessmentId}; the scheme is kept without one`)
       scheme.assessmentId = null
-    } else if (scheme.variant === 'mock_exam') {
+    } else if (scheme.variant === 'mock_exam' && a.sections.length) {
       for (const s of scheme.sections) {
         const real = a.sections.find((r) => r.id === s.id)
         if (!real) { warnings.push(`${a.id} has no section ${s.id}; grading scores it as written in the scheme`); continue }
