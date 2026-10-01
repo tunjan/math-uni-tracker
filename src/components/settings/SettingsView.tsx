@@ -15,6 +15,7 @@ import { getSettings, updateSettings } from '@/lib/store/settings'
 import { Panel } from '../Panel'
 import { ModelPicker } from './ModelPicker'
 import { CallLog } from './CallLog'
+import { AvailabilityCard, PlanningCard } from './AvailabilityCard'
 
 export function SettingsView() {
   return (
@@ -22,6 +23,8 @@ export function SettingsView() {
       <div className="mx-auto max-w-3xl space-y-5 p-3 sm:p-6">
         <ApiKeyCard />
         <ModelsCard />
+        <AvailabilityCard />
+        <PlanningCard />
         <CallLog />
       </div>
     </div>

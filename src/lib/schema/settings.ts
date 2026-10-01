@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { CourseKey, ISODateTime } from './common'
+import { Availability } from './sessions'
+import { DEFAULT_AVAILABILITY, PlanParams } from '../scheduler/params'
 
 /** Exported with backups. The API key is NOT here: it lives in the separate, never-exported secrets table. */
 export const Settings = z.strictObject({
@@ -12,12 +14,17 @@ export const Settings = z.strictObject({
   /** OpenRouter file-parser engine; null = OpenRouter's default (native, else its free parser). */
   pdfEngine: z.enum(['native', 'mistral-ocr', 'cloudflare-ai']).nullable(),
   lastExportAt: ISODateTime.nullable(),
+  /** When you can study. */
+  availability: Availability.default(DEFAULT_AVAILABILITY),
+  planParams: PlanParams.default(PlanParams.parse({})),
 })
 
 export const DEFAULT_SETTINGS: z.infer<typeof Settings> = {
   models: { setup: null, grading: null },
   pdfEngine: null,
   lastExportAt: null,
+  availability: DEFAULT_AVAILABILITY,
+  planParams: PlanParams.parse({}),
 }
 
 export const AiCall = z.strictObject({
