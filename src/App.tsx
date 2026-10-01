@@ -10,6 +10,8 @@ import { SetupView } from '@/components/course/SetupView'
 import { SemesterDialog } from '@/components/layout/SemesterDialog'
 import { NoticeBar } from '@/components/NoticeBar'
 import { SettingsView } from '@/components/settings/SettingsView'
+import { TodayView } from '@/components/plan/TodayView'
+import { WeekView } from '@/components/plan/WeekView'
 import { Sidebar } from '@/components/Sidebar'
 import { Tag } from '@/components/Tag'
 import type { Course } from '@/lib/schema/course'
@@ -122,8 +124,8 @@ function Welcome({ onCreate }: { onCreate: () => void }) {
 function Content({ route, course }: { route: Exclude<Route, { kind: 'setup' }>; course: Course | null | undefined }) {
   if (route.kind === 'global') {
     switch (route.view) {
-      case 'today': return <ComingSoon title="Today" phase="3.5">Your checklist of today’s study sessions.</ComingSoon>
-      case 'calendar': return <ComingSoon title="Calendar" phase="3.6">The week, across all courses.</ComingSoon>
+      case 'today': return <TodayView />
+      case 'calendar': return <WeekView />
       case 'dashboard': return <ComingSoon title="Semester dashboard" phase="7.3">All courses side by side, with exam countdowns.</ComingSoon>
       case 'documents': return <ComingSoon title="Documents" phase="4.1">Every course’s files in one place.</ComingSoon>
       case 'settings': return <SettingsView />

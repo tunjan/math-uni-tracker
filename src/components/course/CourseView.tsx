@@ -8,6 +8,7 @@ import { Grid, type SaveItem } from '@/components/Grid'
 import { useGrid } from '@/components/grid-model'
 import { CourseTabs } from '@/components/layout/CourseTabs'
 import { ExamsView } from './ExamsView'
+import { PlanTab } from '@/components/plan/PlanTab'
 import { OrphanPanel } from '@/components/Notices'
 import { SubtopicSheet } from '@/components/SubtopicSheet'
 import { Toolbar } from '@/components/Toolbar'
@@ -94,7 +95,7 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
         <Dashboard index={index} derived={derived} subtopicProgress={subtopicProgress} onOpenSubtopic={setSheetId}
           onSelectTopic={(id) => { setPrefs({ topicId: id }); navigate({ kind: 'course', key: course.key, tab: 'grid' }) }} />
       )}
-      {tab === 'plan' && <ComingSoon title="Plan" phase="3.7">The course timeline and whether the plan fits.</ComingSoon>}
+      {tab === 'plan' && <PlanTab course={course} />}
       {tab === 'docs' && <ComingSoon title="Documents" phase="4.1">Every document of this course, with filters. For now, documents live in each subtopic’s side sheet.</ComingSoon>}
       {tab === 'exams' && <ExamsView course={course} readOnly={readOnly} />}
       <SubtopicSheet subtopicId={sheetId} onClose={() => setSheetId(null)} courseKey={course.key} readOnly={readOnly}

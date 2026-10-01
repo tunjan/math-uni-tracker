@@ -152,7 +152,8 @@ class Day {
       this.studied += m
       return true
     }
-    const from = o ? o.end + this.p.breakMinutes : 0
+    // New sessions start on a 5-minute mark.
+    const from = o ? Math.ceil((o.end + this.p.breakMinutes) / 5) * 5 : 0
     const start = this.slot(m, from) ?? this.slot(m, 0)
     if (start === null) return false
     this.take(start, m)
@@ -271,9 +272,12 @@ export function plan(input: PlanInput): PlanResult {
       for (const pre of f.prerequisites) for (const pit of idx.subtopics.get(pre)?.items ?? []) { const dep = learnOf.get(pit.id); if (dep) u.deps.push({ id: dep, gap: 0 }) }
     }
     for (const a of acts.filter((x) => x.kind === 'coursework' && x.courseworkMinutes)) {
+      // Coursework starts once the topics it covers have been learned.
+      const covered = c.course.structure.topics.filter((t) => a.coversTopicIds.includes(t.id)).flatMap((t) => t.subtopics.flatMap((st) => st.items))
+      const after = covered.flatMap((it) => (learnOf.has(it.id) ? [{ id: learnOf.get(it.id)!, gap: 0 }] : []))
       split(`C:${key}:${a.id}`, a.courseworkMinutes!, P.session.maxMinutes, P.session.preferredMinutes).forEach(({ id, minutes, part }, k, all) => {
         units.push({ id, course: key, type: 'coursework', itemIds: [], subtopicId: null, topicId: null, assessmentId: a.id, minutes, dueBy: a.end, p: 1,
-          deps: k ? [{ id: all[k - 1].id, gap: 0 }] : [], part, reason: `${a.title}, due ${a.end}` })
+          deps: k ? [{ id: all[k - 1].id, gap: 0 }] : after, part, reason: `${a.title}, due ${a.end}${after.length ? ', after learning the topics it covers' : ''}` })
       })
     }
   }

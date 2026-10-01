@@ -170,5 +170,10 @@ describe('feasibility', () => {
     const r = plan(input({ courses: [...input().courses, md] }))
     expect(r.feasibility.courses.map((c) => c.course)).toEqual(['ALI', 'MD'])
     expect(r.sessions.some((x) => x.courseKey === 'MD' && x.date < '2026-11-01')).toBe(true) // MD is not starved until ALI is done
+    // MD's video coursework (on topic TN) only starts once TN has been learned, and is done by its window's end.
+    const lastTN = r.sessions.filter((x) => x.type === 'learn' && x.itemIds.some((i) => i.startsWith('MD:TN'))).map((x) => x.date).sort().at(-1)!
+    const cw = r.sessions.filter((x) => x.type === 'coursework').map((x) => x.date).sort()
+    expect(cw[0] >= lastTN).toBe(true)
+    expect(cw.at(-1)! <= '2026-11-24').toBe(true)
   })
 })

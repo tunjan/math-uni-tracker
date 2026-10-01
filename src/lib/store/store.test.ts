@@ -9,6 +9,8 @@ import { DB_NAME, ValidationError, db } from './db'
 import { addDocument, deleteDocument, getDocumentBlob, listDocuments, updateDocument } from './documents'
 import { appendReview, listReviews, updateItem, updateSubtopic } from './progress'
 import { getSettings, updateSettings } from './settings'
+import { applyPlan, completeSession, proposePlan, setLocked } from './planning'
+import { putAssessment as putA } from './courses'
 
 beforeEach(async () => {
   await db.delete()
@@ -218,5 +220,50 @@ describe('settings', () => {
     await updateSettings({ models: { setup: 'some/model', grading: null } })
     expect((await getSettings()).models.setup).toBe('some/model')
     expect((await problems(updateSettings({ pdfEngine: 'magic' as never })))[0]).toMatch(/pdfEngine/)
+  })
+})
+
+describe('planning', () => {
+  async function planned() {
+    await ali()
+    const pp = (await listAssessments('ALI')).find((a) => a.id === 'PP')!
+    await putA({ ...pp, date: '2027-01-27' })
+    const p = await proposePlan('2026-10-01', null)
+    await applyPlan(p, '2026-10-01', 'first plan')
+    return db.sessions.toArray()
+  }
+
+  it('a plan is saved with its run; replanning keeps done and locked sessions and replaces the rest', async () => {
+    const first = await planned()
+    expect(first.length).toBeGreaterThan(50)
+    const learn = first.find((s) => s.type === 'learn')!
+    const locked = first.find((s) => s.type === 'practise')!
+    await completeSession(learn.id, { status: 'done', actualMinutes: learn.durationMin, completedItemIds: learn.itemIds, note: '' })
+    await setLocked(locked.id, true)
+    const p2 = await proposePlan('2026-10-01', null)
+    await applyPlan(p2, '2026-10-01', 'replan')
+    const after = await db.sessions.toArray()
+    expect(after.find((s) => s.id === learn.id)!.status).toBe('done')
+    expect(after.find((s) => s.id === locked.id)).toBeDefined()
+    expect((await db.plans.toArray()).map((r) => r.reason).sort()).toEqual(['first plan', 'replan'])
+    // The learned items are not planned for learning again.
+    expect(after.filter((s) => s.type === 'learn' && s.status === 'planned' && s.itemIds.some((i) => learn.itemIds.includes(i)))).toEqual([])
+  })
+
+  it('ticking sessions writes dates, confidence, review events and self-test attempts', async () => {
+    const all = await planned()
+    const learn = all.find((s) => s.type === 'learn' && s.itemIds.includes('ALI:MA.01.1'))!
+    await completeSession(learn.id, { status: 'done', actualMinutes: 30, completedItemIds: ['ALI:MA.01.1'], note: '' })
+    expect((await db.items.get('ALI:MA.01.1'))!.dateStarted).toBe(learn.date)
+    const practise = all.find((s) => s.type === 'practise' && s.itemIds.includes('ALI:MA.01.1'))!
+    await completeSession(practise.id, { status: 'done', actualMinutes: 30, completedItemIds: ['ALI:MA.01.1'], note: '' })
+    expect((await db.items.get('ALI:MA.01.1'))!.dateFinished).toBe(practise.date)
+    const review = all.find((s) => s.type === 'review' && s.itemIds.includes('ALI:MA.01.1'))!
+    await completeSession(review.id, { status: 'done', actualMinutes: 5, completedItemIds: ['ALI:MA.01.1'], note: '', ratings: { 'ALI:MA.01.1': 2 } })
+    expect((await db.items.get('ALI:MA.01.1'))!.confidence).toBe(2)
+    expect((await db.reviews.toArray()).map((r) => [r.source, r.result])).toEqual([['review_session', 'bad']])
+    const test = all.find((s) => s.type === 'retrieval' && s.subtopicId === 'ALI:MA.01')!
+    await completeSession(test.id, { status: 'done', actualMinutes: 10, completedItemIds: test.itemIds, note: '', score: 4, weakPoints: 'potencias' })
+    expect((await db.subtopics.get('ALI:MA.01'))!.testAttempts).toMatchObject([{ score: 4, source: 'retrieval_session', weakPoints: 'potencias' }])
   })
 })
