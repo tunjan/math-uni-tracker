@@ -12,6 +12,7 @@ import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
 import { SetupView } from '@/components/course/SetupView'
 import { SemesterDialog } from '@/components/layout/SemesterDialog'
 import { NoticeBar } from '@/components/NoticeBar'
+import { BackupBanner } from '@/components/BackupBanner'
 import { SettingsView } from '@/components/settings/SettingsView'
 import { TodayView } from '@/components/plan/TodayView'
 import { WeekView } from '@/components/plan/WeekView'
@@ -92,6 +93,7 @@ export default function App() {
           </Button>
         </header>
         <NoticeBar />
+        <BackupBanner />
         {semesters.length === 0 ? (
           <Welcome onCreate={() => setSemesterDialog('new')} />
         ) : (

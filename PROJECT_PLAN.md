@@ -635,9 +635,9 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **7.1 Course dashboard:** *(done)* progress by count and hours, plan vs actual (six weeks), mastery heatmap (click opens the subtopic), mocks chart with the pass line, next sessions, reviews due.
 - **7.2 Predicted grade:** *(done)* seeded Monte Carlo (4,000 draws): each component from reviewed mocks (recency-weighted), else confidence ratings (≥ 30 % of covered items rated), else a neutral 60 % with a wide spread; exam sections share one ability plus noise, so the real section rule (e.g. the eliminatory test) bites; then the final formula. Median, 10–90 % range, P(pass), P(target), band shares, the basis of each component, and the honesty note.
 - **7.3 Semester dashboard** *(done)* with countdowns: a card per course (progress, work left vs planned, prediction, P(pass), next assessment) and every dated assessment counting down; undated ones are listed.
-- **7.4 Zip export + progress JSON** (no secrets).
-- **7.5 Import with preview, safety backup and round-trip tests.**
-- **7.6 Backup banner (14 days) + storage warning.**
+- **7.4 Zip export + progress JSON** *(done)* (no secrets): Settings → Your data. The zip holds a manifest, one JSON per table and the document bytes; never the API key, the models cache or setup drafts (tested by searching the bytes).
+- **7.5 Import with preview, safety backup and round-trip tests.** *(done)* Every row is Zod-validated before anything changes; one bad row blocks the import. A zip replaces everything (the key on this device stays); a progress JSON replaces progress only for courses that exist here. The current data downloads as a safety backup first.
+- **7.6 Backup banner (14 days) + storage warning.** *(done)* Counted from the last export, or from your first course if you never exported; “Later” hides it until tomorrow. Settings shows storage used, warns at 80 % and offers to make storage persistent.
 
 ---
 
