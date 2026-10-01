@@ -4,7 +4,7 @@
  * course setup should extract. Exam dates are not in the guides: UNED publishes them separately.
  * Topic ids are illustrative; course setup will choose the real ones.
  */
-import type { Assessment, Course } from '../schema/course'
+import { SPANISH_BANDS, type Assessment, type Course } from '../schema/course'
 
 type Spec = Pick<Assessment, 'id' | 'title' | 'kind'> & Partial<Assessment>
 
@@ -137,3 +137,31 @@ export const MD: CourseFixture = {
 }
 
 export const UNED_2026 = [ALI, LMCN, MD]
+
+/**
+ * A complete course for tests: each fixture topic gets two subtopics (the second needs the first)
+ * with two items each.
+ */
+export function courseFromFixture(f: CourseFixture, semesterId: string): Omit<Course, 'createdAt' | 'updatedAt' | 'archived'> {
+  const item = (id: string, kind: 'definition' | 'theorem') => ({ id, kind, title: `${kind} ${id}`, estMinutes: 30, examWeight: null, difficulty: 2 })
+  return {
+    key: f.key, semesterId, code: f.code, title: f.title, credits: 6,
+    level: 'Grado en Matemáticas, primer curso', language: 'es', textbooks: [], hue: 'blue',
+    scaleMax: 10, passMark: 5, gradeBands: SPANISH_BANDS, target: 7, sitting: 'ordinary', finalRule: f.finalRule,
+    structure: {
+      version: 2,
+      retiredIds: [],
+      topics: f.topics.map((t) => ({
+        id: t,
+        title: t,
+        subtopics: [1, 2].map((n) => ({
+          id: `${t}.0${n}`,
+          title: `${t} ${n}`,
+          prerequisites: n === 2 ? [`${t}.01`] : [],
+          items: [item(`${t}.0${n}.1`, 'definition'), item(`${t}.0${n}.2`, 'theorem')],
+        })),
+      })),
+    },
+    pastPapers: [],
+  }
+}

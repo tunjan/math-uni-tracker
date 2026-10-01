@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Confidence, CourseKey, ISODate, QualifiedId } from './common'
+import { Confidence, CourseKey, ISODate, QualifiedItemId, QualifiedSubtopicId } from './common'
 
 export const Example = z.strictObject({
   id: z.string(),
@@ -8,7 +8,7 @@ export const Example = z.strictObject({
 })
 
 export const ItemProgress = z.strictObject({
-  id: QualifiedId,
+  id: QualifiedItemId,
   courseKey: CourseKey,
   dateStarted: ISODate.nullable(),
   dateFinished: ISODate.nullable(),
@@ -45,7 +45,7 @@ export const Book = z.strictObject({
 })
 
 export const SubtopicProgress = z.strictObject({
-  id: QualifiedId,
+  id: QualifiedSubtopicId,
   courseKey: CourseKey,
   books: z.array(Book),
   testAttempts: z.array(TestAttempt),
@@ -55,7 +55,7 @@ export const SubtopicProgress = z.strictObject({
 /** Append-only. Spaced-repetition state is a pure function of an item's finish date and these events. */
 export const ReviewEvent = z.strictObject({
   id: z.uuid(),
-  itemId: QualifiedId,
+  itemId: QualifiedItemId,
   courseKey: CourseKey,
   date: ISODate,
   source: z.enum(['review_session', 'retrieval_session', 'test_attempt', 'grading']),

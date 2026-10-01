@@ -97,7 +97,7 @@ These are from search excerpts of the official docs, because `openrouter.ai` is 
 | D-19 | Views | **Course tabs: Grid · Plan · Documents · Exams · Dashboard. Sidebar: Today, Calendar, Dashboard (semester), Documents (all), Settings.** | |
 | D-20 | Import | **Replace everything, after downloading an automatic safety backup.** | A correct merge is a project of its own. |
 | D-21 | Archive | **Archived semesters and courses are read-only and out of planning, Today and Calendar. They stay in exports and can be unarchived.** | |
-| D-22 | Stop granularity | **Stop after every sub-phase in §9.** Say "next two together" to batch. | Each stop is a small, testable diff. |
+| D-22 | Stop granularity | **Stop for your testing at the end of each of your 7 milestones; one commit per sub-phase so each diff stays small and reviewable.** | Your original instruction, reaffirmed by "proceed" during phase 1.2. |
 | D-23 | Large setup output | **One call; on `finish_reason=length`, explain and suggest a model with a larger output cap.** | Your courses are about 30–50 subtopics, well within the caps. |
 | D-24 | Exam frequency | **The model tags past-paper questions with item IDs; code computes `examWeight`.** Past papers can be indexed later, one at a time (phase 2.6). | Reproducible. You have no past papers yet; they come from the virtual course. |
 | D-25 | Grading totals | **Code recomputes all marks, MCQ penalties, section rules and the final formula.** | |
@@ -155,7 +155,8 @@ src/
     schema/
       common.ts  structure.ts  course.ts  progress.ts  documents.ts  sessions.ts  settings.ts
       ai-setup.ts  markscheme.ts  grading.ts  backup.ts
-    db.ts  repos/*.ts
+    store/ db.ts courses.ts progress.ts documents.ts settings.ts   # the new Dexie DB + validated write helpers
+    progress-rules.ts             # finished ⇒ started, shared by old and new stores
     derive.ts  view.ts  palette.ts  tex.ts  theme.ts  format.ts  utils.ts
     srs.ts  priority.ts  structure-diff.ts  exam-weight.ts  final-grade.ts
     scheduler/ params.ts capacity.ts units.ts skeleton.ts feasibility.ts allocate.ts pack.ts diff.ts explain.ts index.ts
@@ -580,7 +581,10 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
   - *Not included:* DB or UI; the running app is unchanged.
   - *Verify:* `npm test` passes (97 tests). Read `src/lib/fixtures/uned-2026.ts` to check the three formulas match your guides.
   - *Notes:* `dates.ts` now holds the date helpers; `db.ts` and `derive.ts` re-export them, so behaviour is unchanged. The MD guide's PEC window gives weekdays that don't match 2026 ("Viernes 19" is a Thursday), so confirm it on the virtual course.
-- **1.2 Dexie DB + repositories.** `fake-indexeddb` tests. No UI.
+- **1.2 Dexie DB + repositories.** *(done)*
+  - `src/lib/store/*`: the `course-planner` DB and validated write helpers. Every write is Zod-checked and cross-checked against its course, and nothing is written when a check fails.
+  - Helpers: semesters, courses + assessments (created together), structure replacement with snapshots, progress, append-only reviews, documents + blobs, settings.
+  - 20 `fake-indexeddb` tests. No UI.
 - **1.3 Semester and course management + structure JSON import.** Create "2026/27 Semestre 1" and courses by hand; an invalid import saves nothing.
 - **1.4 App shell, router, sidebar.** Semester switcher, courses with progress, nav entries (placeholders), course tabs, mobile nav.
 - **1.5 Grid, side sheet and dashboard on course data.** Qualified IDs, per-course prefs and orphans, documents in the sheet. `curriculum.json` is removed from runtime.

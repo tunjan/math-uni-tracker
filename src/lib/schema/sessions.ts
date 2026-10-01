@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { hhmmToMinutes } from '../dates'
-import { ComponentId, CourseKey, HHMM, ISODate, ISODateTime, QualifiedId } from './common'
+import { ComponentId, CourseKey, HHMM, ISODate, ISODateTime, QualifiedItemId, QualifiedSubtopicId } from './common'
 
 export const SESSION_TYPES = ['learn', 'practise', 'retrieval', 'review', 'mock', 'mock_review', 'buffer', 'coursework'] as const
 
@@ -14,9 +14,9 @@ export const StudySession = z.strictObject({
   start: HHMM,
   durationMin: z.int().positive(),
   type: z.enum(SESSION_TYPES),
-  itemIds: z.array(QualifiedId),
+  itemIds: z.array(QualifiedItemId),
   /** Retrieval and review sessions are per subtopic. */
-  subtopicId: QualifiedId.nullable(),
+  subtopicId: QualifiedSubtopicId.nullable(),
   assessmentId: ComponentId.nullable(),
   /** Mocks: the paper to sit. */
   documentId: z.uuid().nullable(),
@@ -26,7 +26,7 @@ export const StudySession = z.strictObject({
   status: z.enum(['planned', 'done', 'partial', 'skipped']),
   actual: z.strictObject({
     durationMin: z.int().nonnegative(),
-    completedItemIds: z.array(QualifiedId),
+    completedItemIds: z.array(QualifiedItemId),
     note: z.string(),
   }).nullable(),
   /** Replanning never moves a locked session. */

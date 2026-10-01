@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { ISODate } from './dates'
+import { applyItemPatch as applyRule } from './progress-rules'
 
 export { dateToISO, isoToDate, todayISO, type ISODate } from './dates'
 export type Confidence = 0 | 1 | 2 | 3 | 4 | 5
@@ -76,11 +77,7 @@ export const emptyItem = (id: string): ItemProgress => ({
 export type ItemPatch = Partial<Omit<ItemProgress, 'id' | 'updatedAt'>>
 
 /** Edit rule: a finished item is always started, on the finish date at the latest. */
-export function applyItemPatch(cur: ItemProgress, patch: ItemPatch): ItemProgress {
-  const next = { ...cur, ...patch }
-  if (next.dateFinished && (!next.dateStarted || next.dateStarted > next.dateFinished)) next.dateStarted = next.dateFinished
-  return next
-}
+export const applyItemPatch = (cur: ItemProgress, patch: ItemPatch): ItemProgress => applyRule<ItemProgress>(cur, patch)
 
 export async function updateItem(id: string, patch: ItemPatch) {
   await db.transaction('rw', db.items, async () => {

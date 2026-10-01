@@ -11,6 +11,8 @@ export const TOPIC_ID_RE = /^[A-Z]{2}$/
 export const SUBTOPIC_ID_RE = /^[A-Z]{2}\.\d{2}$/
 export const ITEM_ID_RE = /^[A-Z]{2}\.\d{2}\.\d+$/
 export const QUALIFIED_ID_RE = /^[A-Z][A-Z0-9]{1,11}:[A-Z]{2}(\.\d{2}(\.\d+)?)?$/
+export const QUALIFIED_SUBTOPIC_ID_RE = /^[A-Z][A-Z0-9]{1,11}:[A-Z]{2}\.\d{2}$/
+export const QUALIFIED_ITEM_ID_RE = /^[A-Z][A-Z0-9]{1,11}:[A-Z]{2}\.\d{2}\.\d+$/
 /** Names usable in grade formulas: assessment and exam-section ids ('PP', 'PEC1', 'T'). */
 export const COMPONENT_ID_RE = /^[A-Z][A-Za-z0-9_]*$/
 
@@ -19,6 +21,8 @@ export const TopicId = z.string().regex(TOPIC_ID_RE, 'topic id must look like MA
 export const SubtopicId = z.string().regex(SUBTOPIC_ID_RE, 'subtopic id must look like MA.03')
 export const ItemId = z.string().regex(ITEM_ID_RE, 'item id must look like MA.03.2')
 export const QualifiedId = z.string().regex(QUALIFIED_ID_RE, 'qualified id must look like ALI:MA.03.2')
+export const QualifiedSubtopicId = z.string().regex(QUALIFIED_SUBTOPIC_ID_RE, 'subtopic id must look like ALI:MA.03')
+export const QualifiedItemId = z.string().regex(QUALIFIED_ITEM_ID_RE, 'item id must look like ALI:MA.03.2')
 export const ComponentId = z.string().regex(COMPONENT_ID_RE, 'component id: a capital letter then letters, digits or _, e.g. PEC1')
 
 export const HUES = ['blue', 'cyan', 'teal', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'gray'] as const
