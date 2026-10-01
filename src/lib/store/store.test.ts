@@ -149,6 +149,16 @@ describe('progress', () => {
     expect((await problems(updateItem('ALI:MA.01.1', { overrides: { estMinutes: 2 } })))[0]).toMatch(/estMinutes/)
   })
 
+  it('archived courses and courses in archived semesters are read-only', async () => {
+    const s = await ali()
+    await setCourseArchived('ALI', true)
+    expect(await problems(updateItem('ALI:MA.01.1', { confidence: 3 }))).toEqual(['ALI is archived; unarchive it to make changes'])
+    await setCourseArchived('ALI', false)
+    await updateSemester(s.id, { archived: true })
+    expect(await problems(updateItem('ALI:MA.01.1', { confidence: 3 }))).toEqual(["ALI's semester is archived; unarchive it to make changes"])
+    expect(await problems(addDocument({ ...docMeta }, new Blob(['x'])))).toEqual(["ALI's semester is archived; unarchive it to make changes"])
+  })
+
   it('progress on an id that is not in the structure is kept (it becomes an orphan, never refused)', async () => {
     await ali()
     expect((await updateItem('ALI:ZZ.09.9', { notes: 'kept' })).notes).toBe('kept')
@@ -166,6 +176,11 @@ describe('progress', () => {
     expect((await listReviews('ALI:MA.01.1')).map((r) => [r.date, r.result, r.courseKey])).toEqual([['2026-10-05', 'bad', 'ALI'], ['2026-10-06', 'good', 'ALI']])
   })
 })
+
+const docMeta = {
+  courseKey: 'ALI', topicId: 'MA', subtopicId: 'ALI:MA.01', assessmentId: null, kind: 'lecture_notes' as const, source: 'ai' as const,
+  name: 'Matrices.pdf', format: 'pdf' as const, linkedIds: [], itemIds: ['ALI:MA.01.1'], year: null,
+}
 
 describe('documents', () => {
   const meta = {

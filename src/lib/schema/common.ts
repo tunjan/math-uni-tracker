@@ -30,6 +30,7 @@ export const Hue = z.enum(HUES)
 
 /** 0–5; null (unrated) is a different thing from 0. */
 export const Confidence = z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
+export type Confidence = z.infer<typeof Confidence>
 
 /** A grade formula (see formula.ts). Syntax and types are checked here; names are checked against the course. */
 export const Formula = z.string().superRefine((src, ctx) => {

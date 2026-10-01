@@ -3,13 +3,15 @@ import { Menu, Moon, Pencil, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ComingSoon } from '@/components/ComingSoon'
+import { CourseView } from '@/components/course/CourseView'
 import { EditCourseDialog } from '@/components/course/EditCourseDialog'
 import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
-import { CourseTabs } from '@/components/layout/CourseTabs'
 import { SemesterDialog } from '@/components/layout/SemesterDialog'
+import { NoticeBar } from '@/components/NoticeBar'
 import { Sidebar } from '@/components/Sidebar'
 import { Tag } from '@/components/Tag'
-import { requestPersistence } from '@/lib/db'
+import type { Course } from '@/lib/schema/course'
+import { requestPersistence } from '@/lib/store/db'
 import { useAssessments, useCourse, useCourseProgress, useCourses, useCurrentSemester, useSemesters } from '@/lib/store/hooks'
 import { useTheme } from '@/lib/theme'
 import { navigate, useRoute, type GlobalView, type Route } from '@/routes'
@@ -82,10 +84,11 @@ export default function App() {
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
         </header>
+        <NoticeBar />
         {semesters.length === 0 ? (
           <Welcome onCreate={() => setSemesterDialog('new')} />
         ) : (
-          <Content route={route} courseFound={routeCourse !== null} />
+          <Content route={route} course={routeCourse} />
         )}
       </main>
       <SemesterDialog open={semesterDialog !== null} onOpenChange={(o) => !o && setSemesterDialog(null)}
@@ -112,7 +115,7 @@ function Welcome({ onCreate }: { onCreate: () => void }) {
   )
 }
 
-function Content({ route, courseFound }: { route: Route; courseFound: boolean }) {
+function Content({ route, course }: { route: Route; course: Course | null | undefined }) {
   if (route.kind === 'global') {
     switch (route.view) {
       case 'today': return <ComingSoon title="Today" phase="3.5">Your checklist of today’s study sessions.</ComingSoon>
@@ -122,21 +125,13 @@ function Content({ route, courseFound }: { route: Route; courseFound: boolean })
       case 'settings': return <ComingSoon title="Settings" phase="2.1">API key, models, availability and data safety.</ComingSoon>
     }
   }
-  if (!courseFound) {
+  if (course === undefined) return <div className="grid flex-1 place-items-center text-muted-foreground">Loading…</div>
+  if (course === null) {
     return (
       <div className="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
         <p>There is no course {route.key}. Import a course file from the sidebar (the <span className="whitespace-nowrap">file icon</span> next to Courses).</p>
       </div>
     )
   }
-  return (
-    <>
-      <CourseTabs courseKey={route.key} tab={route.tab} />
-      {route.tab === 'grid' && <ComingSoon title="Grid" phase="1.5" />}
-      {route.tab === 'plan' && <ComingSoon title="Plan" phase="3.7">The course timeline and whether the plan fits.</ComingSoon>}
-      {route.tab === 'docs' && <ComingSoon title="Documents" phase="4.1" />}
-      {route.tab === 'exams' && <ComingSoon title="Exams" phase="3.1">Assessments, sections and grade formulas.</ComingSoon>}
-      {route.tab === 'dash' && <ComingSoon title="Course dashboard" phase="1.5" />}
-    </>
-  )
+  return <CourseView key={course.key} course={course} tab={route.tab} />
 }

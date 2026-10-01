@@ -16,11 +16,17 @@ import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
-import type { CurriculumIndex } from '@/lib/curriculum'
-import {
-  addPdfs, dateToISO, db, emptyItem, isoToDate, isPdf, openPdf, todayISO, updateItem, updateSubtopic,
-  type Book, type Confidence, type ISODate, type ItemProgress, type SubtopicProgress, type TestAttempt,
-} from '@/lib/db'
+import type { CourseIndex } from '@/lib/course-index'
+import { dateToISO, isoToDate, todayISO, type ISODate } from '@/lib/dates'
+import { qualify } from '@/lib/ids'
+import { reportError } from '@/lib/notify'
+import { openDocument } from '@/lib/open-document'
+import { emptyItemProgress as emptyItem } from '@/lib/progress-rules'
+import type { Confidence } from '@/lib/schema/common'
+import type { Book, ItemProgress, SubtopicProgress, TestAttempt } from '@/lib/schema/progress'
+import { db } from '@/lib/store/db'
+import { addDocument, deleteDocument } from '@/lib/store/documents'
+import { updateItem, updateSubtopic } from '@/lib/store/progress'
 import { PASS_SCORE, type Derived } from '@/lib/derive'
 import { formatDate, pct } from '@/lib/format'
 import { KIND_HUE, topicHue } from '@/lib/palette'
@@ -33,7 +39,10 @@ import { Tex } from './Tex'
 interface Props {
   subtopicId: string | null
   onClose: () => void
-  index: CurriculumIndex
+  courseKey: string
+  /** Archived course or semester. */
+  readOnly: boolean
+  index: CourseIndex
   derived: Derived
   progress: Map<string, ItemProgress>
   subtopicProgress: Map<string, SubtopicProgress>
@@ -49,7 +58,7 @@ export function SubtopicSheet({ subtopicId, onClose, ...rest }: Props) {
   )
 }
 
-function SheetBody({ id, index, derived, progress, subtopicProgress }: Omit<Props, 'subtopicId' | 'onClose'> & { id: string }) {
+function SheetBody({ id, courseKey, readOnly, index, derived, progress, subtopicProgress }: Omit<Props, 'subtopicId' | 'onClose'> & { id: string }) {
   const s = index.subtopics.get(id)
   const d = derived.subtopics.get(id)
   if (!s || !d) return null
@@ -82,9 +91,12 @@ function SheetBody({ id, index, derived, progress, subtopicProgress }: Omit<Prop
         )}
       </header>
       <div className="flex-1 space-y-7 overflow-y-auto px-5 py-5">
-        <Books id={id} books={sp?.books ?? []} />
-        <Pdfs id={id} />
-        <Tests id={id} tests={sp?.testAttempts ?? []} />
+        <fieldset disabled={readOnly} className="min-w-0 space-y-7">
+          {readOnly && <p className="text-xs text-muted-foreground">This course is archived: everything here is read-only.</p>}
+          <Books id={qualify(courseKey, id)} books={sp?.books ?? []} />
+          <Documents courseKey={courseKey} topicId={s.topicId} subtopicId={qualify(courseKey, id)} readOnly={readOnly} />
+          <Tests id={qualify(courseKey, id)} tests={sp?.testAttempts ?? []} />
+        </fieldset>
         <Section icon={ListTree} title="Items" count={s.items.length}>
           <ul className="divide-y divide-grid-line rounded-md border border-border">
             {s.items.map((it) => {
@@ -97,7 +109,7 @@ function SheetBody({ id, index, derived, progress, subtopicProgress }: Omit<Prop
                   <span className="hidden w-20 shrink-0 text-right text-xs text-muted-foreground tabular-nums sm:block">
                     {p.dateFinished ? formatDate(p.dateFinished) : p.dateStarted ? 'Started' : ''}
                   </span>
-                  <StarsCell value={p.confidence} onSet={(v) => void updateItem(it.id, { confidence: v })} />
+                  <StarsCell value={p.confidence} disabled={readOnly} onSet={(v) => void updateItem(qualify(courseKey, it.id), { confidence: v }).catch(reportError)} />
                 </li>
               )
             })}
@@ -171,7 +183,7 @@ function SaveOnBlur({ value, onSave, ...props }: { value: string; onSave: (v: st
 }
 
 function Books({ id, books }: { id: string; books: Book[] }) {
-  const set = (fn: (b: Book[]) => Book[]) => void updateSubtopic(id, (cur) => ({ ...cur, books: fn(cur.books) }))
+  const set = (fn: (b: Book[]) => Book[]) => void updateSubtopic(id, (cur) => ({ ...cur, books: fn(cur.books) })).catch(reportError)
   const patch = (bookId: string, p: Partial<Book>) => set((bs) => bs.map((b) => (b.id === bookId ? { ...b, ...p } : b)))
   return (
     <Section icon={BookOpen} title="Books" count={books.length}
@@ -200,48 +212,59 @@ function Books({ id, books }: { id: string; books: Book[] }) {
 
 const formatSize = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 
-function Pdfs({ id }: { id: string }) {
-  // Metadata only: the blob is read when a PDF is opened.
-  const pdfs = useLiveQuery(async () => {
-    const rows = await db.pdfs.where('subtopicId').equals(id).toArray()
-    return rows.map(({ blob: _blob, ...meta }) => meta).sort((a, b) => a.addedAt.localeCompare(b.addedAt))
-  }, [id])
+const isPdf = (f: File) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+
+const KIND_TAG = { syllabus: ['Syllabus', 'gray'], past_paper: ['Past paper', 'red'], mark_scheme: ['Mark scheme', 'orange'], lecture_notes: ['Notes', 'blue'],
+  problem_set: ['Problem set', 'purple'], solutions: ['Solutions', 'teal'], my_working: ['My working', 'yellow'], ai_feedback: ['AI feedback', 'pink'] } as const
+const SOURCE_LABEL = { class: 'From class', ai: 'AI-generated', me: 'Mine' } as const
+
+/** This subtopic's documents. Full upload with kind, source and links arrives with the documents library (phase 4). */
+function Documents({ courseKey, topicId, subtopicId, readOnly }: { courseKey: string; topicId: string; subtopicId: string; readOnly: boolean }) {
+  // Metadata only: the bytes are read when a document is opened.
+  const docs = useLiveQuery(async () => (await db.documents.where('subtopicId').equals(subtopicId).toArray()).sort((a, b) => a.addedAt.localeCompare(b.addedAt)), [subtopicId])
   const input = useRef<HTMLInputElement>(null)
   const [rejected, setRejected] = useState<string[]>([])
   const onFiles = (files: FileList | null) => {
     const all = [...(files ?? [])]
     setRejected(all.filter((f) => !isPdf(f)).map((f) => f.name))
-    const ok = all.filter(isPdf)
-    if (ok.length) void addPdfs(id, ok)
+    for (const f of all.filter(isPdf)) {
+      void addDocument({
+        courseKey, topicId, subtopicId, assessmentId: null, kind: 'lecture_notes', source: 'class', name: f.name,
+        format: 'pdf', mime: 'application/pdf', linkedIds: [], itemIds: [], year: null,
+      }, f).catch(reportError)
+    }
     if (input.current) input.current.value = ''
   }
   return (
-    <Section icon={FileText} title="Resources" count={pdfs?.length}
-      action={
+    <Section icon={FileText} title="Documents" count={docs?.length}
+      action={!readOnly && (
         <>
           <input ref={input} type="file" accept="application/pdf,.pdf" multiple hidden onChange={(e) => onFiles(e.target.files)} />
           <Button size="xs" variant="outline" onClick={() => input.current?.click()}><Upload />Add PDF</Button>
         </>
-      }>
-      {rejected.length > 0 && <p className="text-xs text-destructive">Only PDF files can be added. Skipped: {rejected.join(', ')}</p>}
-      {!pdfs?.length ? (
-        <Empty>No PDFs yet. Add problem sets or notes; they are stored in this browser and included in full exports.</Empty>
+      )}>
+      {rejected.length > 0 && <p className="text-xs text-destructive">Only PDF files can be added here. Skipped: {rejected.join(', ')}</p>}
+      {!docs?.length ? (
+        <Empty>No documents yet. Add notes or problem sets as PDFs; they are stored in this browser and included in full exports.</Empty>
       ) : (
         <ul className="divide-y divide-grid-line rounded-md border border-border">
-          {pdfs.map((f) => (
+          {docs.map((f) => (
             <li key={f.id} className="flex items-center gap-2 py-1 pr-1 pl-2">
               <FileText className="size-4 shrink-0 text-muted-foreground" />
-              <button type="button" onClick={() => void openPdf(f.id)} className="min-w-0 flex-1 truncate text-left hover:underline" title={`Open ${f.name} in a new tab`}>
+              <button type="button" onClick={() => void openDocument(f.id)} className="min-w-0 flex-1 truncate text-left hover:underline" title={`Open ${f.name} in a new tab`}>
                 {f.name}
               </button>
+              <Tag hue={KIND_TAG[f.kind][1]} className="hidden sm:inline-flex">{KIND_TAG[f.kind][0]}</Tag>
+              <span className="hidden shrink-0 text-xs text-muted-foreground md:inline">{SOURCE_LABEL[f.source]}</span>
               <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{formatSize(f.size)}</span>
-              <span className="hidden shrink-0 text-xs text-muted-foreground tabular-nums sm:inline">{formatDate(f.addedAt.slice(0, 10))}</span>
-              <Button size="icon-sm" variant="ghost" aria-label={`Open ${f.name}`} onClick={() => void openPdf(f.id)} className="shrink-0 text-muted-foreground">
+              <Button size="icon-sm" variant="ghost" aria-label={`Open ${f.name}`} onClick={() => void openDocument(f.id)} className="shrink-0 text-muted-foreground">
                 <ExternalLink />
               </Button>
-              <ConfirmDelete what="this PDF" detail={`"${f.name}" (${formatSize(f.size)}) will be deleted from this browser.`} onConfirm={() => void db.pdfs.delete(f.id)}>
-                {(open) => <DeleteButton label={`Delete ${f.name}`} onClick={open} />}
-              </ConfirmDelete>
+              {!readOnly && (
+                <ConfirmDelete what="this document" detail={`"${f.name}" (${formatSize(f.size)}) will be deleted from this browser.`} onConfirm={() => void deleteDocument(f.id).catch(reportError)}>
+                  {(open) => <DeleteButton label={`Delete ${f.name}`} onClick={open} />}
+                </ConfirmDelete>
+              )}
             </li>
           ))}
         </ul>
@@ -280,12 +303,12 @@ function ScorePicker({ value, onChange }: { value: Confidence | null; onChange: 
 }
 
 function Tests({ id, tests }: { id: string; tests: TestAttempt[] }) {
-  const set = (fn: (t: TestAttempt[]) => TestAttempt[]) => void updateSubtopic(id, (cur) => ({ ...cur, testAttempts: fn(cur.testAttempts) }))
+  const set = (fn: (t: TestAttempt[]) => TestAttempt[]) => void updateSubtopic(id, (cur) => ({ ...cur, testAttempts: fn(cur.testAttempts) })).catch(reportError)
   const patch = (tid: string, p: Partial<TestAttempt>) => set((ts) => ts.map((t) => (t.id === tid ? { ...t, ...p } : t)))
   const [draft, setDraft] = useState<{ date: ISODate; score: Confidence | null; weakPoints: string }>({ date: todayISO(), score: null, weakPoints: '' })
   const add = () => {
     if (draft.score === null) return
-    const attempt: TestAttempt = { id: crypto.randomUUID(), date: draft.date, score: draft.score, weakPoints: draft.weakPoints.trim() }
+    const attempt: TestAttempt = { id: crypto.randomUUID(), date: draft.date, score: draft.score, weakPoints: draft.weakPoints.trim(), source: 'manual', gradingId: null, percent: null }
     set((ts) => [...ts, attempt])
     setDraft({ date: todayISO(), score: null, weakPoints: '' })
   }

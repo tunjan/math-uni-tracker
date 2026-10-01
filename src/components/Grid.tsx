@@ -1,83 +1,35 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  getExpandedRowModel,
-  useReactTable,
-  type ExpandedState,
-  type Row,
-} from '@tanstack/react-table'
+import type { Row } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowDown, ArrowUp, Calendar, CalendarCheck, ChevronRight, Maximize2, CircleChevronDown, ClipboardCheck, Hash, Link2, ListChecks, Percent, RotateCcw, Star, Type, type LucideIcon } from 'lucide-react'
-import type { ItemKind } from '@/lib/curriculum'
+import { ArrowDown, ArrowUp, ChevronRight, Maximize2, Star, type LucideIcon } from 'lucide-react'
 import { SORT_KEYS, type GridRow, type Query, type SortKey } from '@/lib/view'
-import { emptyItem, updateItem, type Confidence, type ItemProgress } from '@/lib/db'
+import { emptyItemProgress as emptyItem } from '@/lib/progress-rules'
+import type { Confidence } from '@/lib/schema/common'
+import type { ItemProgress } from '@/lib/schema/progress'
+import type { ItemPatch } from '@/lib/store/progress'
 import type { Derived, Rollup } from '@/lib/derive'
 import { formatDate, pct } from '@/lib/format'
 import { KIND_HUE } from '@/lib/palette'
 import { texPlain } from '@/lib/tex'
 import { cn } from '@/lib/utils'
 import { DateCell, ExamplesCell, NotesCell, StarsCell } from './cells'
+import { FROZEN, KIND_LABEL, opensEditor, type GridTable } from './grid-model'
 import { StatusPill } from './StatusPill'
 import { Tag } from './Tag'
 import { Tex } from './Tex'
 
-const col = createColumnHelper<GridRow>()
-const meta = (icon: LucideIcon) => ({ meta: { icon } })
-// Frozen columns first; their widths drive the sticky offsets.
-const columns = [
-  col.accessor('id', { header: 'ID', size: 88, ...meta(Hash) }),
-  col.accessor('title', { header: 'Title', size: 380, ...meta(Type) }),
-  col.display({ id: 'status', header: 'Status', size: 136, ...meta(CircleChevronDown) }),
-  col.accessor('kind', { header: 'Kind', size: 112, ...meta(CircleChevronDown) }),
-  col.display({ id: 'dateStarted', header: 'Started', size: 120, ...meta(Calendar) }),
-  col.display({ id: 'dateFinished', header: 'Finished', size: 120, ...meta(CalendarCheck) }),
-  col.display({ id: 'confidence', header: 'Confidence', size: 128, ...meta(Star) }),
-  col.display({ id: 'notes', header: 'Notes', size: 300, ...meta(Type) }),
-  col.display({ id: 'examples', header: 'Examples', size: 200, ...meta(ListChecks) }),
-  col.display({ id: 'itemsDone', header: 'Items done', size: 150, ...meta(Percent) }),
-  col.display({ id: 'subtopicsDone', header: 'Subtopics done', size: 150, ...meta(Percent) }),
-  col.display({ id: 'tests', header: 'Best test', size: 120, ...meta(ClipboardCheck) }),
-  col.display({ id: 'retest', header: 'Retest', size: 150, ...meta(RotateCcw) }),
-  col.accessor('prerequisites', { header: 'Prerequisites', size: 260, ...meta(Link2) }),
-]
-const FROZEN = 2
-const POPOVER_COLS = new Set(['dateStarted', 'dateFinished', 'notes', 'examples'])
-
-const KIND_LABEL: Record<ItemKind, string> = {
-  definition: 'Definition',
-  theorem: 'Theorem',
-  technique: 'Technique',
-  example: 'Example',
-  exercise: 'Exercise',
-}
-
-const opensEditor = (r: GridRow, colId: string) =>
-  r.type === 'item' && POPOVER_COLS.has(colId) && (colId !== 'examples' || r.kind === 'definition')
-
-export function useGrid(data: GridRow[], { hidden, expandAll }: { hidden: string[]; expandAll: boolean }) {
-  const [expanded, setExpanded] = useState<ExpandedState>(() => Object.fromEntries(data.map((r) => [r.id, true])))
-  return useReactTable({
-    data,
-    columns,
-    // While searching or filtering, show every match: expand everything without touching the saved state.
-    state: { expanded: expandAll ? true : expanded, columnVisibility: Object.fromEntries(hidden.map((id) => [id, false])) },
-    onExpandedChange: setExpanded,
-    getRowId: (r) => r.id,
-    getSubRows: (r) => r.subRows,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-  })
-}
-
-export type GridTable = ReturnType<typeof useGrid>
 
 interface Cursor {
   rowId: string
   colId: string
 }
 
+/** Saves an item's progress by its local ID (the caller qualifies it with the course key). */
+export type SaveItem = (localId: string, patch: ItemPatch) => void
+
 interface CellCtx {
+  saveItem: SaveItem
+  readOnly: boolean
   openSubtopic: (id: string) => void
   progress: Map<string, ItemProgress>
   derived: Derived
@@ -88,8 +40,11 @@ interface CellCtx {
   stopEditing: () => void
 }
 
-export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort, onSort }: {
+export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort, onSort, saveItem, readOnly }: {
   table: GridTable
+  saveItem: SaveItem
+  /** Archived course or semester: everything shows, nothing edits. */
+  readOnly: boolean
   rowHeight: number
   progress: Map<string, ItemProgress>
   derived: Derived
@@ -129,6 +84,8 @@ export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort
 
   const focusGrid = () => scrollRef.current?.focus({ preventScroll: true })
   const ctx: CellCtx = {
+    saveItem,
+    readOnly,
     openSubtopic: onOpenSubtopic,
     progress,
     derived,
@@ -202,17 +159,17 @@ export function Grid({ table, rowHeight, progress, derived, onOpenSubtopic, sort
         return
       case 'Enter':
         e.preventDefault()
-        if (opensEditor(r, active.colId)) setEditing(true)
+        if (!readOnly && opensEditor(r, active.colId)) setEditing(true)
         else if (row.getCanExpand()) row.toggleExpanded()
         return
     }
-    if (r.type !== 'item') return
+    if (r.type !== 'item' || readOnly) return
     if (active.colId === 'confidence') {
-      if (/^[0-5]$/.test(e.key)) void updateItem(r.id, { confidence: Number(e.key) as Confidence })
-      else if (e.key === 'Backspace' || e.key === 'Delete') void updateItem(r.id, { confidence: null })
+      if (/^[0-5]$/.test(e.key)) saveItem(r.id, { confidence: Number(e.key) as Confidence })
+      else if (e.key === 'Backspace' || e.key === 'Delete') saveItem(r.id, { confidence: null })
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
-      if (active.colId === 'dateFinished') void updateItem(r.id, { dateFinished: null })
-      else if (active.colId === 'dateStarted' && !progress.get(r.id)?.dateFinished) void updateItem(r.id, { dateStarted: null })
+      if (active.colId === 'dateFinished') saveItem(r.id, { dateFinished: null })
+      else if (active.colId === 'dateStarted' && !progress.get(r.id)?.dateFinished) saveItem(r.id, { dateStarted: null })
     }
   }
 
@@ -279,7 +236,7 @@ function GridRowView({ row, style, height, ctx }: { row: Row<GridRow>; style: CS
         return (
           <div key={cell.id} role="gridcell" aria-selected={isActive}
             onMouseDown={() => !isActive && ctx.activate(c)}
-            onDoubleClick={() => opensEditor(r, c.colId) && ctx.edit(c)}
+            onDoubleClick={() => !ctx.readOnly && opensEditor(r, c.colId) && ctx.edit(c)}
             className={cn('relative flex min-w-0 items-center border-r border-grid-line px-2', frozenCls(i), bg,
               isActive && 'z-[11] outline-2 -outline-offset-2 outline-primary')}>
             {renderCell(c.colId, row, ctx, isActive && ctx.editing)}
@@ -332,9 +289,9 @@ function renderCell(columnId: string, row: Row<GridRow>, ctx: CellCtx, editing: 
   }
   if (r.type !== 'item') return renderRollupCell(columnId, r, ctx.derived)
   const p = ctx.progress.get(r.id) ?? emptyItem(r.id)
-  const save = (patch: Parameters<typeof updateItem>[1]) => {
+  const save = (patch: ItemPatch) => {
     const changed = Object.entries(patch).some(([k, v]) => JSON.stringify(p[k as keyof ItemProgress]) !== JSON.stringify(v))
-    if (changed) void updateItem(p.id, patch)
+    if (changed) ctx.saveItem(r.id, patch)
     ctx.stopEditing()
   }
   switch (columnId) {
@@ -345,7 +302,7 @@ function renderCell(columnId: string, row: Row<GridRow>, ctx: CellCtx, editing: 
       return <DateCell value={p.dateFinished} min={p.dateStarted} editing={editing}
         onCommit={(v) => save({ dateFinished: v })} onCancel={ctx.stopEditing} />
     case 'confidence':
-      return <StarsCell value={p.confidence} onSet={(v) => void updateItem(p.id, { confidence: v })} />
+      return <StarsCell value={p.confidence} disabled={ctx.readOnly} onSet={(v) => ctx.saveItem(r.id, { confidence: v })} />
     case 'notes':
       return <NotesCell value={p.notes} editing={editing} onCommit={(v) => save({ notes: v })} onCancel={ctx.stopEditing} />
     case 'examples':

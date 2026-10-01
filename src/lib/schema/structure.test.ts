@@ -1,6 +1,8 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { issues } from './common'
 import { CourseStructure } from './structure'
+import { texToHtml } from '../tex'
 
 const item = (id: string, kind = 'definition') => ({ id, kind, title: 'x', estMinutes: 30, examWeight: null, difficulty: 2 })
 const base = () => ({
@@ -73,5 +75,29 @@ describe('planning fields and retired ids', () => {
     expect(errors(c)).toEqual([expect.stringMatching(/MA\.01\.1 was retired and cannot be reused/)])
     c.retiredIds = ['MA.01.7']
     expect(errors(c)).toEqual([])
+  })
+})
+
+describe('the old self-study curriculum, converted (src/fixtures/pure-maths.json)', () => {
+  const json: unknown = JSON.parse(readFileSync(new URL('../../fixtures/pure-maths.json', import.meta.url), 'utf8'))
+
+  it('is a valid structure (16 topics, 2317 items: the stress test for the grid and scheduler)', () => {
+    const r = CourseStructure.safeParse(json)
+    expect(r.success ? [] : issues(r.error)).toEqual([])
+    if (r.success) expect(r.data.topics.flatMap((t) => t.subtopics.flatMap((s) => s.items)).length).toBe(2317)
+  })
+
+  it('every title renders in KaTeX with balanced $', () => {
+    const s = json as { topics: { title: string; subtopics: { title: string; items: { title: string }[] }[] }[] }
+    const bad: string[] = []
+    const check = (t: string) => {
+      if ((t.split('$').length - 1) % 2) return bad.push(`unbalanced $: ${t}`)
+      try { texToHtml(t, true) } catch (e) { bad.push(`${t}: ${(e as Error).message}`) }
+    }
+    for (const t of s.topics) {
+      check(t.title)
+      for (const st of t.subtopics) { check(st.title); st.items.forEach((i) => check(i.title)) }
+    }
+    expect(bad).toEqual([])
   })
 })

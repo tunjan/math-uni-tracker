@@ -1,4 +1,4 @@
-import { isoToDate, type ISODate } from './db'
+import { isoToDate, type ISODate } from './dates'
 
 export const formatDate = (s: ISODate | null) =>
   s ? isoToDate(s).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : ''

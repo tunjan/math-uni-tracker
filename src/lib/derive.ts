@@ -1,6 +1,7 @@
-import type { CurriculumIndex, Subtopic } from './curriculum'
+import type { CourseIndex } from './course-index'
 import { addDays, type ISODate } from './dates'
-import type { ItemProgress, SubtopicProgress, TestAttempt } from './db'
+import type { ItemProgress, SubtopicProgress, TestAttempt } from './schema/progress'
+import type { StructureSubtopic } from './schema/structure'
 
 export { addDays }
 
@@ -58,7 +59,7 @@ function addInto(into: Rollup, r: Rollup) {
 }
 
 /** Everything about a subtopic that depends only on its own data (not on prerequisites). */
-export function deriveOwn(subtopic: Subtopic, items: Map<string, ItemProgress>, tests: TestAttempt[]) {
+export function deriveOwn(subtopic: StructureSubtopic, items: Map<string, ItemProgress>, tests: TestAttempt[]) {
   const progress = subtopic.items.map((i) => items.get(i.id))
   const starts = progress.flatMap((p) => (p?.dateStarted ? [p.dateStarted] : []))
   const finishes = progress.flatMap((p) => (p?.dateFinished ? [p.dateFinished] : []))
@@ -105,7 +106,7 @@ export function deriveOwn(subtopic: Subtopic, items: Map<string, ItemProgress>, 
  * (Ready vs Locked), so a prerequisite's Completed is judged on its own data alone.
  */
 export function deriveAll(
-  index: CurriculumIndex,
+  index: CourseIndex,
   items: Map<string, ItemProgress>,
   subtopicProgress: Map<string, SubtopicProgress>,
 ): Derived {
@@ -115,7 +116,7 @@ export function deriveAll(
   const subtopics = new Map<string, SubtopicDerived>()
   const topics = new Map<string, Rollup>()
   const overall = emptyRollup()
-  for (const t of index.curriculum.topics) {
+  for (const t of index.structure.topics) {
     const topicRollup = emptyRollup()
     for (const s of t.subtopics) {
       const o = own.get(s.id)!
@@ -132,16 +133,19 @@ export function deriveAll(
 
 export interface Orphan {
   id: string
-  record: 'item' | 'subtopic' | 'pdf'
+  record: 'item' | 'subtopic' | 'document'
   summary: string
 }
 
-/** Saved records whose IDs are no longer in the curriculum. They are listed, never deleted. */
+/**
+ * Saved records whose IDs are no longer in the course's structure. They are listed, never deleted.
+ * IDs here are local ('MA.01.2'): the caller strips the course key.
+ */
 export function findOrphans(
-  index: CurriculumIndex,
+  index: CourseIndex,
   items: ItemProgress[],
   subtopics: SubtopicProgress[],
-  pdfSubtopicIds: string[],
+  documentSubtopicIds: string[],
 ): Orphan[] {
   const out: Orphan[] = []
   for (const p of items) {
@@ -159,8 +163,8 @@ export function findOrphans(
     if (index.subtopics.has(s.id)) continue
     out.push({ id: s.id, record: 'subtopic', summary: `${s.books.length} books, ${s.testAttempts.length} test attempts` })
   }
-  const pdfCounts = new Map<string, number>()
-  for (const id of pdfSubtopicIds) if (!index.subtopics.has(id)) pdfCounts.set(id, (pdfCounts.get(id) ?? 0) + 1)
-  for (const [id, n] of pdfCounts) out.push({ id, record: 'pdf', summary: `${n} PDF${n > 1 ? 's' : ''}` })
+  const docCounts = new Map<string, number>()
+  for (const id of documentSubtopicIds) if (!index.subtopics.has(id)) docCounts.set(id, (docCounts.get(id) ?? 0) + 1)
+  for (const [id, n] of docCounts) out.push({ id, record: 'document', summary: `${n} document${n > 1 ? 's' : ''}` })
   return out.sort((a, b) => a.id.localeCompare(b.id))
 }

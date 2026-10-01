@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import type { CurriculumIndex } from '@/lib/curriculum'
-import type { SubtopicProgress } from '@/lib/db'
+import type { CourseIndex } from '@/lib/course-index'
+import type { SubtopicProgress } from '@/lib/schema/progress'
 import { PASS_SCORE, type Derived, type Status } from '@/lib/derive'
 import { pct } from '@/lib/format'
 import { STATUS_META, topicHue, type Hue } from '@/lib/palette'
@@ -9,7 +9,7 @@ import { Tag } from './Tag'
 import { Tex } from './Tex'
 
 interface Props {
-  index: CurriculumIndex
+  index: CourseIndex
   derived: Derived
   subtopicProgress: Map<string, SubtopicProgress>
   onOpenSubtopic: (id: string) => void
@@ -89,7 +89,7 @@ export function Dashboard({ index, derived, subtopicProgress, onOpenSubtopic, on
 
         <Panel title="Progress by topic" aside={<span className="text-xs text-muted-foreground">Items finished</span>}>
           <ul className="divide-y divide-grid-line">
-            {index.curriculum.topics.map((t) => {
+            {index.structure.topics.map((t) => {
               const r = derived.topics.get(t.id)!
               const v = pct(r.itemsFinished, r.itemsTotal)
               return (

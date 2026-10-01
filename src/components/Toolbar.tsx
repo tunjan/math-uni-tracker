@@ -13,34 +13,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { ITEM_KINDS, type CurriculumIndex, type ItemKind } from '@/lib/curriculum'
+import type { CourseIndex } from '@/lib/course-index'
+import { ITEM_KINDS, type ItemKind } from '@/lib/schema/structure'
+import { HIDEABLE_COLUMNS } from './grid-model'
 import type { Status } from '@/lib/derive'
 import { KIND_HUE, STATUS_META, topicHue } from '@/lib/palette'
 import { cn } from '@/lib/utils'
 import { SORT_KEYS, type SortKey, type ViewPrefs } from '@/lib/view'
 import { Tag } from './Tag'
 
-export const HIDEABLE_COLUMNS: Record<string, string> = {
-  status: 'Status',
-  kind: 'Kind',
-  dateStarted: 'Started',
-  dateFinished: 'Finished',
-  confidence: 'Confidence',
-  notes: 'Notes',
-  examples: 'Examples',
-  itemsDone: 'Items done',
-  subtopicsDone: 'Subtopics done',
-  tests: 'Best test',
-  retest: 'Retest',
-  prerequisites: 'Prerequisites',
-}
 
 const STATUSES = Object.keys(STATUS_META) as Status[]
 const kindLabel = (k: ItemKind) => k[0].toUpperCase() + k.slice(1)
 const toggle = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x])
 
 interface Props {
-  index: CurriculumIndex
+  index: CourseIndex
   prefs: ViewPrefs
   setPrefs: (p: Partial<ViewPrefs>) => void
   search: string
@@ -106,7 +94,7 @@ export function Toolbar({ index, prefs, setPrefs, search, setSearch, onExpandAll
             <DropdownMenuLabel>Topic</DropdownMenuLabel>
             <DropdownMenuRadioGroup value={prefs.topicId ?? ''} onValueChange={(v: string) => setPrefs({ topicId: v || null })}>
               <DropdownMenuRadioItem value="">All topics</DropdownMenuRadioItem>
-              {index.curriculum.topics.map((t) => (
+              {index.structure.topics.map((t) => (
                 <DropdownMenuRadioItem key={t.id} value={t.id}>
                   <Tag hue={topicHue(index, t.id)} link className="w-8 justify-center">{t.id}</Tag>
                   <span className="truncate">{t.title}</span>

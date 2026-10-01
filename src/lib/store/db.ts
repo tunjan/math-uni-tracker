@@ -95,3 +95,19 @@ export function valid<S extends z.ZodType>(schema: S, value: unknown, what: stri
   if (!r.success) throw new ValidationError(what, issues(r.error))
   return r.data
 }
+
+/**
+ * Progress and documents can only be written to a course that exists and is not archived
+ * (nor in an archived semester). Call inside a transaction that includes courses and semesters.
+ */
+export async function requireWritable(courseKey: string, what: string) {
+  const course = await db.courses.get(courseKey)
+  if (!course) throw new ValidationError(what, [`no course ${courseKey}`])
+  if (course.archived) throw new ValidationError(what, [`${courseKey} is archived; unarchive it to make changes`])
+  if ((await db.semesters.get(course.semesterId))?.archived) throw new ValidationError(what, [`${courseKey}'s semester is archived; unarchive it to make changes`])
+}
+
+/** Ask the browser not to evict our IndexedDB under storage pressure. Best effort. */
+export function requestPersistence() {
+  void navigator.storage?.persist?.().catch(() => undefined)
+}

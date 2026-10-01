@@ -6,7 +6,9 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { dateToISO, isoToDate, todayISO, type Confidence, type Example, type ISODate } from '@/lib/db'
+import { dateToISO, isoToDate, todayISO, type ISODate } from '@/lib/dates'
+import type { Confidence } from '@/lib/schema/common'
+import type { Example } from '@/lib/schema/progress'
 import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { Tag } from './Tag'
@@ -86,14 +88,14 @@ export function DateCell({
   )
 }
 
-export function StarsCell({ value, onSet }: { value: Confidence | null; onSet: (v: Confidence | null) => void }) {
+export function StarsCell({ value, onSet, disabled }: { value: Confidence | null; onSet: (v: Confidence | null) => void; disabled?: boolean }) {
   const [hover, setHover] = useState<number | null>(null)
-  const shown = hover ?? value ?? 0
+  const shown = (disabled ? null : hover) ?? value ?? 0
   return (
-    <div className="group/stars flex items-center gap-0.5" onMouseLeave={() => setHover(null)}>
+    <fieldset disabled={disabled} className="group/stars flex items-center gap-0.5" onMouseLeave={() => setHover(null)}>
       <button type="button" tabIndex={-1} aria-label="Zero stars" onClick={() => onSet(value === 0 ? null : 0)}
         className={cn('mr-0.5 grid size-4 place-items-center rounded text-muted-foreground/60 hover:text-foreground',
-          value === 0 ? 'text-foreground' : 'opacity-0 group-hover/stars:opacity-100')}>
+          value === 0 ? 'text-foreground' : 'opacity-0 group-enabled/stars:group-hover/stars:opacity-100')}>
         <Ban className="size-3" />
       </button>
       {([1, 2, 3, 4, 5] as const).map((n) => (
@@ -102,7 +104,7 @@ export function StarsCell({ value, onSet }: { value: Confidence | null; onSet: (
           <Star className={cn('size-3.5', n <= shown ? 'fill-rating text-rating' : 'text-foreground/20')} />
         </button>
       ))}
-    </div>
+    </fieldset>
   )
 }
 

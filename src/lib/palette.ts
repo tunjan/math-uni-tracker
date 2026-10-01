@@ -1,4 +1,5 @@
-import type { CurriculumIndex, ItemKind } from './curriculum'
+import type { CourseIndex } from './course-index'
+import type { ItemKind } from './schema/structure'
 import type { Status } from './derive'
 
 /** Airtable's select-option hues, in Airtable's own picker order. */
@@ -15,7 +16,7 @@ export const KIND_HUE: Record<ItemKind, Hue> = {
 // Gray is reserved for the Locked status, so topics cycle through the nine colours.
 const TOPIC_HUES: Hue[] = ['blue', 'cyan', 'teal', 'green', 'yellow', 'orange', 'red', 'pink', 'purple']
 
-export function topicHue(index: CurriculumIndex, topicId: string): Hue {
+export function topicHue(index: CourseIndex, topicId: string): Hue {
   return TOPIC_HUES[[...index.topics.keys()].indexOf(topicId) % TOPIC_HUES.length] ?? 'gray'
 }
 
