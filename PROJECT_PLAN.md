@@ -603,15 +603,15 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **2.7 Cost display** *(done)*: the cost after each call, the AI spend per course in Course details, and the full call log with per-course totals in Settings.
 
 ### Milestone 3: assessments, availability, scheduler
-- **3.1 Exams view:** assessments CRUD, sections and formula editors with live validation, results, sittings.
-- **3.2 Availability + planning parameters** (Settings).
-- **3.3 Scheduler core** (pure, tested: determinism, prerequisites, gaps, SRS, cutoffs, interleaving, windows, splitting, DST).
-- **3.4 Feasibility + exam skeleton** (pure, tested).
-- **3.5 Persist a plan + Today view:** complete, partial, skip; review ratings; retrieval → test attempt; date writes.
-- **3.6 Week calendar** (agenda layout at 390 px; lock sessions).
-- **3.7 Plan tab:** course timeline + feasibility panel.
-- **3.8 Replan:** triggers, diff, confirm, history.
-- **3.9 `.ics` export.**
+- **3.1 Exams view:** *(done)* assessments CRUD, sections and formula editors with live validation, results, sittings.
+- **3.2 Availability + planning parameters** *(done)* (Settings).
+- **3.3 Scheduler core** *(done)* (pure, tested: determinism, prerequisites, gaps, SRS, cutoffs, interleaving, windows, splitting, DST).
+- **3.4 Feasibility + exam skeleton** *(done)* (pure, tested).
+- **3.5 Persist a plan + Today view:** *(done)* complete, partial, skip; review ratings; retrieval → test attempt; date writes.
+- **3.6 Week calendar** *(done)* (agenda layout at 390 px; lock sessions).
+- **3.7 Plan tab:** *(done)* course timeline + feasibility panel.
+- **3.8 Replan:** *(done)* triggers, diff, confirm, history.
+- **3.9 `.ics` export.** *(done)*
 
 ### Milestone 4: documents library
 - **4.1 Documents views:** per course and global, tags, filters, open, confirm delete.
