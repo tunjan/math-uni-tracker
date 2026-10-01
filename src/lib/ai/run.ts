@@ -9,6 +9,9 @@ import type { CourseStructure } from '../schema/structure'
 import { SETUP_JSON_SCHEMA, SetupResponse, setupMessages, setupProblems } from './setup'
 import { PAPER_JSON_SCHEMA, PaperIndex, paperMessages, paperProblems } from './paper-index'
 import type { Course } from '../schema/course'
+import { GradingResult } from '../schema/grading'
+import type { MarkScheme } from '../schema/markscheme'
+import { GRADING_JSON_SCHEMA, gradingMessages, gradingProblems } from './grading'
 
 /** Record a call (with its cost) in the log. */
 export async function logCall(call: CallLog) {
@@ -65,4 +68,20 @@ export async function runPaperIndex(course: Course, file: { name: string; blob: 
     schemaName: 'past_paper_index', jsonSchema: PAPER_JSON_SCHEMA, zod: PaperIndex, check: paperProblems(course),
     purpose: 'paper_index', repairPurpose: 'setup_repair', courseKey: course.key, log: logCall,
   })
+}
+
+/** Grade pages of handwritten working (JPEG blobs) against a mark scheme with the grading (vision) model. */
+export async function runGrading(courseKey: string, scheme: MarkScheme, pages: Blob[], note: string, signal?: AbortSignal): Promise<Outcome<GradingResult> & { model: string }> {
+  const [apiKey, settings] = await Promise.all([getApiKey(), getSettings()])
+  if (!apiKey) throw new AiError('no_key', 'no API key')
+  const model = settings.models.grading
+  if (!model) throw new AiError('bad_request', 'choose a grading model in Settings first')
+  const images = await Promise.all(pages.map(async (b, i) => ({ name: `page-${i + 1}.jpg`, dataUrl: await toDataUrl(b) })))
+  const out = await generateStructured({
+    apiKey, model, signal, maxTokens: 16_000,
+    messages: gradingMessages(scheme, images, note),
+    schemaName: 'grading', jsonSchema: GRADING_JSON_SCHEMA, zod: GradingResult, check: gradingProblems(scheme),
+    purpose: 'grading', repairPurpose: 'grading_repair', courseKey, log: logCall,
+  })
+  return { ...out, model }
 }

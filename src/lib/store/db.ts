@@ -3,6 +3,7 @@ import type { z } from 'zod'
 import { issues } from '../schema/common'
 import type { Assessment, Course, Semester } from '../schema/course'
 import type { DocumentMeta } from '../schema/documents'
+import type { Grading } from '../schema/grading'
 import type { ItemProgress, ReviewEvent, SubtopicProgress } from '../schema/progress'
 import type { PlanRun, StudySession } from '../schema/sessions'
 import type { AiCall, Settings } from '../schema/settings'
@@ -74,11 +75,11 @@ export type PlannerDb = Dexie & {
   secrets: EntityTable<SecretRow, 'key'>
   cache: EntityTable<CacheRow, 'key'>
   drafts: EntityTable<SetupDraft, 'id'>
+  gradings: EntityTable<Grading, 'id'>
 }
 
 export function openPlannerDb(name = DB_NAME): PlannerDb {
   const db = new Dexie(name) as PlannerDb
-  // Gradings arrive with phase 6 as version 3.
   db.version(1).stores({
     semesters: '&id',
     courses: '&key, semesterId',
@@ -96,6 +97,7 @@ export function openPlannerDb(name = DB_NAME): PlannerDb {
     secrets: '&key',
   })
   db.version(2).stores({ cache: '&key', drafts: '&id, courseKey' })
+  db.version(3).stores({ gradings: '&id, courseKey, createdAt' })
   return db
 }
 

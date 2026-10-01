@@ -10,6 +10,7 @@ import type { Assessment, Course, ExamSection } from '@/lib/schema/course'
 import { deleteAssessment, listAssessments, putAssessment } from '@/lib/store/courses'
 import { ValidationError } from '@/lib/store/db'
 import { cn } from '@/lib/utils'
+import { GradingsPanel } from '../grading/GradingsPanel'
 import { Panel } from '../Panel'
 import { Problems } from '../Problems'
 import { Tag } from '../Tag'
@@ -33,6 +34,7 @@ export function ExamsView({ course, readOnly }: { course: Course; readOnly: bool
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto max-w-4xl space-y-5 p-3 sm:p-6">
         <GradeCalculator course={course} assessments={assessments} />
+        <GradingsPanel course={course} readOnly={readOnly} />
         <Panel title="Assessments" aside={!readOnly && <Button size="xs" variant="outline" onClick={() => setAdding(true)}><Plus />Add</Button>}>
           <ul className="divide-y divide-grid-line">
             {adding && <li><AssessmentForm course={course} initial={blank} isNew readOnly={false} onDone={() => setAdding(false)} /></li>}

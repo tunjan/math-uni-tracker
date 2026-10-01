@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ArrowLeft, Code, Download, ExternalLink, Pencil } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import rehypeKatex from 'rehype-katex'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
 import { Button } from '@/components/ui/button'
 import { downloadBlob } from '@/lib/download'
 import { openDocument } from '@/lib/open-document'
 import { db } from '@/lib/store/db'
 import { getDocumentBlob } from '@/lib/store/documents'
 import { navigate } from '@/routes'
+import { Markdown } from '../Markdown'
 import { Tag } from '../Tag'
 import { DocumentDialog } from './DocumentDialog'
 import { KIND_TAG, SOURCE_LABEL } from './doc-meta'
@@ -55,15 +52,7 @@ export function DocView({ id }: { id: string }) {
         ) : body === null ? null : doc.format === 'json' || source ? (
           <pre className="mx-auto max-w-3xl overflow-x-auto p-3 text-xs whitespace-pre-wrap break-words sm:p-6">{json ?? body}</pre>
         ) : (
-          <article className="markdown mx-auto max-w-3xl p-3 sm:p-6">
-            <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}
-              components={{
-                img: ({ alt, src }) => <span className="text-muted-foreground">[image{alt ? `: ${alt}` : ''}{typeof src === 'string' ? ` — ${src}` : ''}]</span>,
-                a: ({ href, children }) => <a href={href} target="_blank" rel="noreferrer noopener">{children}</a>,
-              }}>
-              {body}
-            </ReactMarkdown>
-          </article>
+          <Markdown text={body} className="mx-auto max-w-3xl p-3 sm:p-6" />
         )}
       </div>
       <DocumentDialog mode={editing ? { kind: 'edit', doc } : null} onClose={() => setEditing(false)} />

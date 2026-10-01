@@ -11,6 +11,8 @@ import { appendReview, listReviews, updateItem, updateSubtopic } from './progres
 import { getSettings, updateSettings } from './settings'
 import { applyPlan, completeSession, proposePlan, setLocked } from './planning'
 import { putAssessment as putA } from './courses'
+import { acceptGrading, feedbackLines, saveGrading, setOverride } from './gradings'
+import { MarkScheme } from '../schema/markscheme'
 
 beforeEach(async () => {
   await db.delete()
@@ -222,6 +224,63 @@ describe('documents', () => {
     expect((await db.documents.get(paper.id))!.linkedIds).toEqual([])
     expect(await problems(updateDocument(scheme.id, { linkedIds: [crypto.randomUUID()] }))).toHaveLength(1)
     expect((await db.documents.get(scheme.id))!.linkedIds).toEqual([])
+  })
+})
+
+describe('gradings', () => {
+  const scheme = MarkScheme.parse({
+    schema: 'markscheme/v1', title: 'ALI mock', courseKey: 'ALI', variant: 'mock_exam', assessmentId: 'PP', language: 'es', durationMinutes: 120,
+    sections: [
+      { id: 'T', kind: 'mcq', choose: null, marking: { correct: 0.5, wrong: -0.25, blank: 0 }, questions: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({
+        number: String(n), tier: 'standard', itemIds: [n <= 4 ? 'ALI:MA.01.1' : 'ALI:MA.02.1'], statement: 's', options: ['a', 'b', 'c'], correct: 0, explanation: '' })) },
+      { id: 'D', kind: 'written', choose: null, questions: [1, 2, 3].map((n) => ({
+        number: String(n), tier: 'exam', itemIds: ['ALI:MA.01.2'], marks: 2, parts: [{ label: 'a', marks: 2, statement: '', answer: '', criteria: [] }] })) },
+    ],
+  })
+  const part = (m: number, errors: { where: string; what: string; kind: 'algebra' }[] = []) => ({
+    label: 'a', attempted: true, marksAwarded: m, marksAvailable: 2, criteriaMet: [], errors, missingJustification: [], feedback: 'ok', confidence: 'high' as const })
+  const ai = {
+    schema: 'grading/v1' as const, unreadable: [], caveats: [], modelOverall: { points: 7, band: 'Notable', summary: 'Bien.' },
+    questions: [
+      ...[1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ section: 'T', number: String(n), itemIds: [], selectedOption: 0, parts: [] })),
+      { section: 'D', number: '1', itemIds: [], selectedOption: null, parts: [part(2)] },
+      { section: 'D', number: '2', itemIds: [], selectedOption: null, parts: [part(0, [{ where: 'line 3', what: 'sign error in the cofactor', kind: 'algebra' }])] },
+      { section: 'D', number: '3', itemIds: [], selectedOption: null, parts: [part(1)] },
+    ],
+  }
+  const save = () => saveGrading({ courseKey: 'ALI', title: 'ALI mock', kind: 'mock', sessionId: null, assessmentId: 'PP', schemeDocId: null,
+    workingDocIds: [], scheme, model: 'some/vision-model', ai, date: '2026-11-20' })
+
+  it('accepting applies attempts, lowered confidence and review events once, and saves the feedback', async () => {
+    await ali()
+    await updateItem('ALI:MA.01.2', { confidence: 5 })
+    const g = await save()
+    await setOverride(g.id, 'D.3.a', 2) // D: 2 + 0 + 2 = 4; T 4; total 8
+    const plan = await acceptGrading(g.id)
+    const after = (await db.gradings.get(g.id))!
+    expect([after.status, after.appliedAt !== null]).toEqual(['reviewed', true])
+    const fb = (await db.documents.get(after.feedbackDocId!))!
+    expect([fb.kind, fb.format]).toEqual(['ai_feedback', 'markdown'])
+    expect(await (await db.blobs.get(fb.blobId))!.blob.text()).toMatch(/Score: 8 \/ 10 \(80 %\)/)
+    // MA.01.2: 4 of 6 → 66.7 % → s = 3, lowered from 5. MA.01.1 and MA.02.1 all right → 5 (were unrated).
+    expect(plan.confidence).toEqual([
+      { itemId: 'ALI:MA.01.1', from: null, to: 5 }, { itemId: 'ALI:MA.01.2', from: 5, to: 3 }, { itemId: 'ALI:MA.02.1', from: null, to: 5 },
+    ])
+    expect((await db.items.get('ALI:MA.01.2'))!.confidence).toBe(3)
+    const attempt = (await db.subtopics.get('ALI:MA.01'))!.testAttempts[0]
+    expect([attempt.source, attempt.gradingId, attempt.percent, attempt.score]).toEqual(['ai_graded', g.id, 75, 4])
+    expect(attempt.weakPoints).toBe('D.2a: sign error in the cofactor (algebra)')
+    // Review events: MA.01.1 and MA.02.1 good (100 %); MA.01.2 at 66.7 % is between 50 % and 70 %, so none.
+    expect((await db.reviews.toArray()).map((r) => [r.itemId, r.source, r.result]).sort()).toEqual([['ALI:MA.01.1', 'grading', 'good'], ['ALI:MA.02.1', 'grading', 'good']])
+    expect(await problems(acceptGrading(g.id))).toEqual(['this grading was already accepted'])
+    expect(await problems(setOverride(g.id, 'D.1.a', 0))).toEqual(['this grading is already accepted; its marks are final'])
+    expect(await feedbackLines('ALI', ['MA.01.2'])).toEqual(['ALI mock, D.2a: sign error in the cofactor (algebra)'])
+  })
+
+  it('an unaccepted grading changes nothing', async () => {
+    await ali()
+    await save()
+    expect([await db.items.count(), await db.subtopics.count(), await db.reviews.count(), await db.documents.count()]).toEqual([0, 0, 0, 0])
   })
 })
 

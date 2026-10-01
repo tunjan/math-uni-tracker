@@ -7,7 +7,7 @@ import type { GradedPart, GradingResult } from './schema/grading'
 import type { MarkScheme } from './schema/markscheme'
 import { sectionMax } from './schema/markscheme'
 
-export interface ScoredPart { key: string; label: string; awarded: number; available: number; ai: GradedPart | null; overridden: boolean }
+export interface ScoredPart { key: string; label: string; statement: string; awarded: number; available: number; ai: GradedPart | null; overridden: boolean }
 export interface ScoredQuestion {
   key: string; section: string; number: string; itemIds: string[]
   awarded: number; available: number
@@ -61,7 +61,7 @@ export function scoreGrading(scheme: MarkScheme, ai: GradingResult, overrides: R
         const awarded = over ?? auto
         return {
           key, section: s.id, number: q.number, itemIds: q.itemIds, awarded, available: m.correct, counted: true, statement: q.statement,
-          parts: [{ key, label: '', awarded, available: m.correct, ai: g?.parts[0] ?? null, overridden: over !== undefined }],
+          parts: [{ key, label: '', statement: '', awarded, available: m.correct, ai: g?.parts[0] ?? null, overridden: over !== undefined }],
           mcq: { selected, correct: q.correct, options: q.options, explanation: q.explanation },
         }
       }
@@ -70,10 +70,10 @@ export function scoreGrading(scheme: MarkScheme, ai: GradingResult, overrides: R
         const pk = partKey(s.id, q.number, p.label)
         const over = overrides[pk]
         if (gp && gp.marksAwarded > p.marks + 1e-9) warnings.push(`${pk}: the model gave ${gp.marksAwarded} of ${p.marks}; capped`)
-        return { key: pk, label: p.label, awarded: clamp(over ?? gp?.marksAwarded ?? 0, 0, p.marks), available: p.marks, ai: gp ?? null, overridden: over !== undefined }
+        return { key: pk, label: p.label, statement: p.statement, awarded: clamp(over ?? gp?.marksAwarded ?? 0, 0, p.marks), available: p.marks, ai: gp ?? null, overridden: over !== undefined }
       })
       return {
-        key, section: s.id, number: q.number, itemIds: q.itemIds, statement: q.statement ?? q.parts.map((p) => p.statement).join('\n\n'),
+        key, section: s.id, number: q.number, itemIds: q.itemIds, statement: q.statement ?? '',
         awarded: parts.reduce((a, p) => a + p.awarded, 0), available: q.marks, counted: true, parts, mcq: null,
       }
     })
@@ -153,6 +153,15 @@ export function feedbackPlan(score: GradingScore, confidence: Map<string, Confid
     if (to !== old) out.confidence.push({ itemId, from: old, to })
     if (f >= 0.7) out.reviews.push({ itemId, result: 'good' })
     else if (f < 0.5) out.reviews.push({ itemId, result: 'bad' })
+  }
+  return out
+}
+
+/** Each item's mark fraction from its most recent graded work (newest first in), for the planner's weakness factor. */
+export function latestMarkFractions(scored: { date: string; score: GradingScore }[]): Map<string, number> {
+  const out = new Map<string, number>()
+  for (const { score } of [...scored].sort((a, b) => b.date.localeCompare(a.date))) {
+    for (const [id, v] of score.items) if (!out.has(id) && v.available > 0) out.set(id, clamp(v.awarded / v.available, 0, 1))
   }
   return out
 }

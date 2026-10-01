@@ -4,6 +4,7 @@ import { diffPlans, type PlanDiff } from '../scheduler/diff'
 import { plan, type PlanInput, type PlannedSession, type PlanResult } from '../scheduler/plan'
 import type { Confidence } from '../schema/common'
 import { StudySession } from '../schema/sessions'
+import { latestMarkFractions, scoreGrading } from '../grading-score'
 import { db, nowISO, valid, ValidationError } from './db'
 import { appendReview, updateItem, updateSubtopic } from './progress'
 import { getSettings } from './settings'
@@ -16,13 +17,19 @@ export async function gatherPlanInput(today: ISODate, now: string | null): Promi
   return {
     today, now, availability: settings.availability, params: settings.planParams,
     sessions: await db.sessions.where('date').aboveOrEqual(addDays(today, -1)).toArray(),
-    courses: await Promise.all(courses.map(async (course) => ({
-      course,
-      assessments: await db.assessments.where('courseKey').equals(course.key).toArray(),
-      items: await db.items.where('courseKey').equals(course.key).toArray(),
-      subtopics: await db.subtopics.where('courseKey').equals(course.key).toArray(),
-      reviews: await db.reviews.where('courseKey').equals(course.key).toArray(),
-    }))),
+    courses: await Promise.all(courses.map(async (course) => {
+      const assessments = await db.assessments.where('courseKey').equals(course.key).toArray()
+      const gradings = (await db.gradings.where('courseKey').equals(course.key).toArray()).filter((g) => g.status === 'reviewed')
+      return {
+        course, assessments,
+        items: await db.items.where('courseKey').equals(course.key).toArray(),
+        subtopics: await db.subtopics.where('courseKey').equals(course.key).toArray(),
+        reviews: await db.reviews.where('courseKey').equals(course.key).toArray(),
+        markFractions: latestMarkFractions(gradings.map((g) => ({
+          date: g.date, score: scoreGrading(g.scheme, g.ai, g.overrides, course, assessments.find((a) => a.id === g.assessmentId) ?? null),
+        }))),
+      }
+    })),
   }
 }
 

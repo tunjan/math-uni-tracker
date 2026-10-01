@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { courseFromFixture, MD } from './fixtures/uned-2026'
-import { feedbackPlan, scoreGrading } from './grading-score'
+import { feedbackPlan, latestMarkFractions, scoreGrading } from './grading-score'
 import type { Confidence } from './schema/common'
 import type { Course } from './schema/course'
 import type { GradingResult } from './schema/grading'
@@ -109,5 +109,15 @@ describe('feedback from a grading', () => {
     const sub = feedbackPlan(scoreGrading(tagged, ai(), {}, course, pp), new Map())
     expect(sub.attempts.map((a) => a.subtopicId)).not.toContain('MD:MC.01')
     expect(sub.reviews).toContainEqual({ itemId: 'MD:MC.01.1', result: 'bad' }) // blank: 0 of 0.5
+  })
+})
+
+describe('mark fractions for the planner', () => {
+  it('the most recent grading of each item wins', () => {
+    const older = scoreGrading(scheme, ai(), {}, course, pp)
+    const newer = scoreGrading(scheme, ai([0, 0, 0, 0, 1, 1, 1, 1]), {}, course, pp)
+    const m = latestMarkFractions([{ date: '2026-11-01', score: older }, { date: '2026-11-10', score: newer }])
+    expect(m.get('MD:TN.02.1')).toBe(1) // newer: Q5–8 right
+    expect(m.get('MD:TN.01.1')).toBe(0.2) // newer: Q1–4 wrong (−1) plus D.3 (2 of 3): (−1 + 2) / 5
   })
 })

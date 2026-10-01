@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ClipboardCheck, ClipboardPaste, ExternalLink, FileJson, FileText, Image, Link2, Pencil, Search, Upload } from 'lucide-react'
+import { Camera, ClipboardCheck, ClipboardPaste, ExternalLink, FileJson, FileText, Image, Link2, Pencil, Search, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EMPTY_FILTER, filterDocuments, type DocFilter } from '@/lib/doc-filter'
@@ -10,6 +10,7 @@ import { reportError } from '@/lib/notify'
 import { DOC_KINDS, DOC_SOURCES, type DocKind, type DocSource, type DocumentMeta } from '@/lib/schema/documents'
 import { db } from '@/lib/store/db'
 import { deleteDocument } from '@/lib/store/documents'
+import { GradeDialog } from '../grading/GradeDialog'
 import { PasteSchemeDialog } from '../prompts/PasteSchemeDialog'
 import { Tag } from '../Tag'
 import { DocumentDialog, type DocDialogMode } from './DocumentDialog'
@@ -24,6 +25,7 @@ export function DocumentsView({ courseKey = null }: { courseKey?: string | null 
   const [filter, setFilter] = useState<DocFilter>({ ...EMPTY_FILTER, courseKey })
   const [dialog, setDialog] = useState<DocDialogMode | null>(null)
   const [paste, setPaste] = useState(false)
+  const [grade, setGrade] = useState<{ courseKey: string; schemeDocId: string } | null>(null)
   const data = useLiveQuery(async () => {
     const [docs, courses, semesters] = await Promise.all([courseKey ? db.documents.where('courseKey').equals(courseKey).toArray() : db.documents.toArray(), db.courses.toArray(), db.semesters.toArray()])
     const archivedSem = new Set(semesters.filter((s) => s.archived).map((s) => s.id))
@@ -132,6 +134,9 @@ export function DocumentsView({ courseKey = null }: { courseKey?: string | null 
                         <span className="tabular-nums">{formatSize(d.size)} · {formatDate(d.addedAt.slice(0, 10))}</span>
                       </div>
                     </div>
+                    {d.kind === 'mark_scheme' && d.format === 'json' && !ro && (
+                      <Button size="xs" variant="outline" className="shrink-0" onClick={() => setGrade({ courseKey: d.courseKey, schemeDocId: d.id })}><Camera />Grade</Button>
+                    )}
                     <Button size="icon-sm" variant="ghost" aria-label={`Open ${d.name}`} onClick={() => openDoc(d)} className="shrink-0 text-muted-foreground"><ExternalLink /></Button>
                     {!ro && (
                       <>
@@ -152,6 +157,7 @@ export function DocumentsView({ courseKey = null }: { courseKey?: string | null 
       </div>
       <DocumentDialog mode={dialog} onClose={() => setDialog(null)} />
       <PasteSchemeDialog courseKey={scopeKey} open={paste} onOpenChange={setPaste} />
+      {grade && <GradeDialog courseKey={grade.courseKey} schemeDocId={grade.schemeDocId} open onOpenChange={(o) => !o && setGrade(null)} />}
     </div>
   )
 }

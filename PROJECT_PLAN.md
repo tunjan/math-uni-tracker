@@ -626,10 +626,10 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **5.4 Paste mark-scheme JSON:** *(done)* Documents → Paste mark scheme. Every `markscheme/v1` block in the pasted answer is validated (arithmetic, options, items, course), the real exam's marking wins over the scheme's, and each is saved as a JSON mark-scheme document filed by its items and linked to the whole answer (kept as Markdown).
 
 ### Milestone 6: AI grading
-- **6.1 Grading arithmetic (pure):** MCQ penalties, choose-k, section rules, s(p), attribution, confidence caps.
-- **6.2 Grading wizard** (photos or PDF → pdf.js → vision model).
-- **6.3 Review screen:** overrides; "AI-graded estimate" becomes "reviewed by me"; results saved as documents.
-- **6.4 Apply feedback:** test attempts, confidence, review events, Replan.
+- **6.1 Grading arithmetic (pure):** *(done)* MCQ penalties, choose-k (best k, with a warning), the real assessment's section maxima and rule, s(p), per-subtopic attribution (≥ 1.5 of 10 points), confidence caps; the model's own total is shown only when it disagrees.
+- **6.2 Grading wizard** *(done)* (photos or PDF → pdf.js → vision model). From Exams → Mocks and graded work, or Grade on a mark scheme in Documents. Your working is saved as documents before the call; cost estimate first; cancel.
+- **6.3 Review screen:** *(done)* `#/grading/<id>`: every mark overridable (MCQ: right/wrong/blank), the model's confidence per part, errors and missing justifications rendered with KaTeX; accepting saves the feedback as a Markdown document linked to the working and the scheme.
+- **6.4 Apply feedback:** *(done)* on Accept, all or nothing: test attempts (source `ai_graded`, with the errors as weak points), confidence (only lowered), review events, then Replan. Reviewed gradings also feed the prompt generator's weak points and the planner's weakness factor (latest mark fraction per item).
 
 ### Milestone 7: dashboards and data safety
 - **7.1 Course dashboard:** progress by count and hours, plan vs actual, mastery heatmap, mocks chart, next sessions, reviews due.
