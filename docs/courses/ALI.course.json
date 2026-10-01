@@ -1,0 +1,989 @@
+{
+  "schema": "course/v1",
+  "course": {
+    "key": "ALI",
+    "code": "61021016",
+    "title": "Álgebra Lineal I",
+    "credits": 6,
+    "level": "Grado en Matemáticas, primer curso, primer semestre",
+    "language": "es",
+    "textbooks": [
+      {
+        "title": "Álgebra Lineal y Geometría Vectorial",
+        "authors": "Alberto Borobia y Beatriz Estrada",
+        "edition": "2.ª ed., Sanz y Torres, 2019",
+        "role": "theory"
+      },
+      {
+        "title": "Ejercicios resueltos de Álgebra Lineal. Volumen I",
+        "authors": "Beatriz Estrada",
+        "edition": "Sanz y Torres, 2020",
+        "role": "problems"
+      }
+    ],
+    "hue": "blue",
+    "scaleMax": 10,
+    "passMark": 5,
+    "gradeBands": [
+      {
+        "label": "Sobresaliente",
+        "min": 9
+      },
+      {
+        "label": "Notable",
+        "min": 7
+      },
+      {
+        "label": "Aprobado",
+        "min": 5
+      },
+      {
+        "label": "Suspenso",
+        "min": 0
+      }
+    ],
+    "target": null,
+    "sitting": "ordinary",
+    "finalRule": {
+      "ordinary": "PP >= 5 && taken(PEC1) && taken(PEC2) && PEC1 >= 4 && PEC2 >= 4 ? max(PP, 0.7*PP + 0.3*mean(PEC1, PEC2)) : PP",
+      "extraordinary": null
+    },
+    "structure": {
+      "version": 2,
+      "topics": [
+        {
+          "id": "MA",
+          "title": "Matrices",
+          "subtopics": [
+            {
+              "id": "MA.01",
+              "title": "Operaciones con matrices",
+              "prerequisites": [],
+              "items": [
+                {
+                  "id": "MA.01.1",
+                  "kind": "definition",
+                  "title": "Matriz; igualdad, suma y producto por escalares",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "MA.01.2",
+                  "kind": "definition",
+                  "title": "Producto de matrices",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.01.3",
+                  "kind": "theorem",
+                  "title": "Propiedades del producto: asociatividad, distributividad y no conmutatividad",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.01.4",
+                  "kind": "definition",
+                  "title": "Matriz traspuesta; matrices simétricas y antisimétricas",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "MA.01.5",
+                  "kind": "definition",
+                  "title": "Matrices cuadradas especiales: identidad, diagonal y triangular",
+                  "estMinutes": 20,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "MA.01.6",
+                  "kind": "exercise",
+                  "title": "Calcular potencias $A^n$ de una matriz",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "MA.02",
+              "title": "Escalonamiento de matrices (método de Gauss)",
+              "prerequisites": [
+                "MA.01"
+              ],
+              "items": [
+                {
+                  "id": "MA.02.1",
+                  "kind": "definition",
+                  "title": "Operaciones elementales por filas y matrices elementales",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.02.2",
+                  "kind": "definition",
+                  "title": "Matriz escalonada y escalonada reducida",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.02.3",
+                  "kind": "theorem",
+                  "title": "Toda matriz es equivalente por filas a una única matriz escalonada reducida",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MA.02.4",
+                  "kind": "technique",
+                  "title": "Método de Gauss–Jordan",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "MA.03",
+              "title": "Rango de una matriz",
+              "prerequisites": [
+                "MA.02"
+              ],
+              "items": [
+                {
+                  "id": "MA.03.1",
+                  "kind": "definition",
+                  "title": "Rango de una matriz",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.03.2",
+                  "kind": "theorem",
+                  "title": "El rango es invariante por operaciones elementales y $\\operatorname{rg}(A)=\\operatorname{rg}(A^t)$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MA.03.3",
+                  "kind": "technique",
+                  "title": "Cálculo del rango por escalonamiento",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.03.4",
+                  "kind": "exercise",
+                  "title": "Rango de una matriz que depende de un parámetro",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "MA.04",
+              "title": "Inversa de una matriz",
+              "prerequisites": [
+                "MA.03"
+              ],
+              "items": [
+                {
+                  "id": "MA.04.1",
+                  "kind": "definition",
+                  "title": "Matriz invertible e inversa",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.04.2",
+                  "kind": "theorem",
+                  "title": "$A\\in\\mathcal M_n(\\mathbb K)$ es invertible si y solo si $\\operatorname{rg}(A)=n$",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MA.04.3",
+                  "kind": "theorem",
+                  "title": "$(AB)^{-1}=B^{-1}A^{-1}$ y $(A^t)^{-1}=(A^{-1})^t$",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.04.4",
+                  "kind": "technique",
+                  "title": "Cálculo de la inversa por Gauss–Jordan",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "MA.05",
+              "title": "Determinante de una matriz cuadrada",
+              "prerequisites": [
+                "MA.04"
+              ],
+              "items": [
+                {
+                  "id": "MA.05.1",
+                  "kind": "definition",
+                  "title": "Determinante de una matriz cuadrada",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MA.05.2",
+                  "kind": "theorem",
+                  "title": "Propiedades del determinante: multilinealidad, alternancia y $\\det(AB)=\\det A\\,\\det B$",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MA.05.3",
+                  "kind": "technique",
+                  "title": "Desarrollo por adjuntos (Laplace) y cálculo por escalonamiento",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MA.05.4",
+                  "kind": "theorem",
+                  "title": "$A$ es invertible si y solo si $\\det A\\neq 0$; fórmula de la inversa con la adjunta",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MA.05.5",
+                  "kind": "exercise",
+                  "title": "Determinantes de tipo Vandermonde y con parámetros",
+                  "estMinutes": 75,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "SL",
+          "title": "Sistemas lineales",
+          "subtopics": [
+            {
+              "id": "SL.01",
+              "title": "Representación matricial",
+              "prerequisites": [
+                "MA.01"
+              ],
+              "items": [
+                {
+                  "id": "SL.01.1",
+                  "kind": "definition",
+                  "title": "Sistema de ecuaciones lineales; matriz de coeficientes y matriz ampliada",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "SL.01.2",
+                  "kind": "definition",
+                  "title": "Sistema compatible determinado, compatible indeterminado e incompatible",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "SL.01.3",
+                  "kind": "definition",
+                  "title": "Sistemas equivalentes",
+                  "estMinutes": 20,
+                  "examWeight": null,
+                  "difficulty": 1
+                }
+              ]
+            },
+            {
+              "id": "SL.02",
+              "title": "Resolución de sistemas lineales por escalonamiento",
+              "prerequisites": [
+                "SL.01",
+                "MA.02"
+              ],
+              "items": [
+                {
+                  "id": "SL.02.1",
+                  "kind": "technique",
+                  "title": "Resolución de sistemas por el método de Gauss",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "SL.02.2",
+                  "kind": "technique",
+                  "title": "Expresión paramétrica de la solución general",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "SL.02.3",
+                  "kind": "theorem",
+                  "title": "Solución general = solución particular + soluciones del sistema homogéneo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "SL.03",
+              "title": "Teorema de Rouché–Frobenius",
+              "prerequisites": [
+                "SL.02",
+                "MA.03"
+              ],
+              "items": [
+                {
+                  "id": "SL.03.1",
+                  "kind": "theorem",
+                  "title": "Teorema de Rouché–Frobenius",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "SL.03.2",
+                  "kind": "technique",
+                  "title": "Discusión de un sistema según los valores de un parámetro",
+                  "estMinutes": 75,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "SL.03.3",
+                  "kind": "theorem",
+                  "title": "Regla de Cramer",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "SL.03.4",
+                  "kind": "exercise",
+                  "title": "Discutir y resolver un sistema con parámetros",
+                  "estMinutes": 90,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "EV",
+          "title": "Espacios vectoriales",
+          "subtopics": [
+            {
+              "id": "EV.01",
+              "title": "Espacios vectoriales reales y complejos",
+              "prerequisites": [
+                "MA.01"
+              ],
+              "items": [
+                {
+                  "id": "EV.01.1",
+                  "kind": "definition",
+                  "title": "Espacio vectorial sobre $\\mathbb K=\\mathbb R$ o $\\mathbb C$",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.01.2",
+                  "kind": "example",
+                  "title": "$\\mathbb K^n$, $\\mathcal M_{m\\times n}(\\mathbb K)$, polinomios de grado $\\le n$ y funciones",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "EV.01.3",
+                  "kind": "theorem",
+                  "title": "Propiedades elementales: $0\\cdot v=0$ y $(-1)v=-v$",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "EV.02",
+              "title": "Dependencia lineal; sistema generador, base y dimensión",
+              "prerequisites": [
+                "EV.01",
+                "MA.03"
+              ],
+              "items": [
+                {
+                  "id": "EV.02.1",
+                  "kind": "definition",
+                  "title": "Combinación lineal y subespacio generado",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.02.2",
+                  "kind": "definition",
+                  "title": "Dependencia e independencia lineal",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.02.3",
+                  "kind": "definition",
+                  "title": "Sistema generador y base",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.02.4",
+                  "kind": "theorem",
+                  "title": "Teorema de la base: todas las bases tienen el mismo número de vectores",
+                  "estMinutes": 75,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "EV.02.5",
+                  "kind": "definition",
+                  "title": "Dimensión",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.02.6",
+                  "kind": "technique",
+                  "title": "Estudiar la independencia lineal con el rango de la matriz de coordenadas",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.02.7",
+                  "kind": "theorem",
+                  "title": "Completar un sistema libre a una base y extraer una base de un sistema generador",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "EV.03",
+              "title": "Coordenadas y matrices de cambio de base",
+              "prerequisites": [
+                "EV.02",
+                "MA.04"
+              ],
+              "items": [
+                {
+                  "id": "EV.03.1",
+                  "kind": "definition",
+                  "title": "Coordenadas de un vector respecto de una base",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.03.2",
+                  "kind": "definition",
+                  "title": "Matriz de cambio de base",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EV.03.3",
+                  "kind": "technique",
+                  "title": "Cálculo de coordenadas tras un cambio de base",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "EV.04",
+              "title": "Subespacios vectoriales; ecuaciones paramétricas e implícitas",
+              "prerequisites": [
+                "EV.02",
+                "SL.02"
+              ],
+              "items": [
+                {
+                  "id": "EV.04.1",
+                  "kind": "definition",
+                  "title": "Subespacio vectorial y su caracterización",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "EV.04.2",
+                  "kind": "definition",
+                  "title": "Ecuaciones paramétricas e implícitas de un subespacio",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EV.04.3",
+                  "kind": "technique",
+                  "title": "Paso de ecuaciones paramétricas a implícitas y viceversa",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EV.04.4",
+                  "kind": "theorem",
+                  "title": "$\\dim U=n-$ número de ecuaciones implícitas independientes",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "EV.05",
+              "title": "Suma e intersección de subespacios",
+              "prerequisites": [
+                "EV.04"
+              ],
+              "items": [
+                {
+                  "id": "EV.05.1",
+                  "kind": "definition",
+                  "title": "Suma e intersección de subespacios; suma directa",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EV.05.2",
+                  "kind": "theorem",
+                  "title": "Fórmula de Grassmann",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EV.05.3",
+                  "kind": "technique",
+                  "title": "Bases de $U+W$ y de $U\\cap W$",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "EV.05.4",
+                  "kind": "exercise",
+                  "title": "Hallar un subespacio suplementario",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            },
+            {
+              "id": "EV.06",
+              "title": "Espacio vectorial cociente",
+              "prerequisites": [
+                "EV.05"
+              ],
+              "items": [
+                {
+                  "id": "EV.06.1",
+                  "kind": "definition",
+                  "title": "Espacio cociente $V/U$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "EV.06.2",
+                  "kind": "theorem",
+                  "title": "$\\dim V/U=\\dim V-\\dim U$",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "EV.06.3",
+                  "kind": "technique",
+                  "title": "Base del espacio cociente",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "AL",
+          "title": "Aplicaciones lineales",
+          "subtopics": [
+            {
+              "id": "AL.01",
+              "title": "Aplicación lineal; núcleo e imagen",
+              "prerequisites": [
+                "EV.04"
+              ],
+              "items": [
+                {
+                  "id": "AL.01.1",
+                  "kind": "definition",
+                  "title": "Aplicación lineal",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "AL.01.2",
+                  "kind": "definition",
+                  "title": "Núcleo e imagen",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "AL.01.3",
+                  "kind": "theorem",
+                  "title": "Teorema de las dimensiones: $\\dim V=\\dim\\ker f+\\dim\\operatorname{Im}f$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "AL.02",
+              "title": "Tipos de aplicaciones lineales",
+              "prerequisites": [
+                "AL.01"
+              ],
+              "items": [
+                {
+                  "id": "AL.02.1",
+                  "kind": "definition",
+                  "title": "Monomorfismo, epimorfismo e isomorfismo",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "AL.02.2",
+                  "kind": "theorem",
+                  "title": "$f$ es inyectiva si y solo si $\\ker f=\\{0\\}$",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "AL.02.3",
+                  "kind": "theorem",
+                  "title": "Dos espacios de dimensión finita son isomorfos si y solo si tienen la misma dimensión",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "AL.03",
+              "title": "Representación matricial",
+              "prerequisites": [
+                "AL.01",
+                "EV.03"
+              ],
+              "items": [
+                {
+                  "id": "AL.03.1",
+                  "kind": "definition",
+                  "title": "Matriz de una aplicación lineal respecto de dos bases",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.03.2",
+                  "kind": "theorem",
+                  "title": "Matriz de la composición y de la inversa",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.03.3",
+                  "kind": "technique",
+                  "title": "Cambio de bases en la matriz de una aplicación lineal",
+                  "estMinutes": 75,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "AL.03.4",
+                  "kind": "exercise",
+                  "title": "Hallar la matriz de $f$ a partir de las imágenes de una base",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "AL.04",
+              "title": "Endomorfismos",
+              "prerequisites": [
+                "AL.03"
+              ],
+              "items": [
+                {
+                  "id": "AL.04.1",
+                  "kind": "definition",
+                  "title": "Endomorfismo y matrices semejantes",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.04.2",
+                  "kind": "theorem",
+                  "title": "El determinante y el rango de un endomorfismo no dependen de la base",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.04.3",
+                  "kind": "exercise",
+                  "title": "Estudio de un endomorfismo que depende de parámetros",
+                  "estMinutes": 75,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            },
+            {
+              "id": "AL.05",
+              "title": "Proyecciones y simetrías",
+              "prerequisites": [
+                "AL.04",
+                "EV.05"
+              ],
+              "items": [
+                {
+                  "id": "AL.05.1",
+                  "kind": "definition",
+                  "title": "Proyección sobre $U$ en la dirección de $W$, con $V=U\\oplus W$",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.05.2",
+                  "kind": "definition",
+                  "title": "Simetría respecto de $U$ en la dirección de $W$",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.05.3",
+                  "kind": "theorem",
+                  "title": "$p^2=p$ caracteriza las proyecciones y $s^2=\\mathrm{id}$ las simetrías",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "AL.05.4",
+                  "kind": "exercise",
+                  "title": "Matriz de una proyección o una simetría en la base canónica",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            },
+            {
+              "id": "AL.06",
+              "title": "Espacio dual",
+              "prerequisites": [
+                "AL.03"
+              ],
+              "items": [
+                {
+                  "id": "AL.06.1",
+                  "kind": "definition",
+                  "title": "Forma lineal y espacio dual $V^*$",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.06.2",
+                  "kind": "definition",
+                  "title": "Base dual",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "AL.06.3",
+                  "kind": "technique",
+                  "title": "Cálculo de la base dual",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "AL.06.4",
+                  "kind": "theorem",
+                  "title": "Anulador de un subespacio: $\\dim U^0=\\dim V-\\dim U$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "retiredIds": []
+    },
+    "pastPapers": []
+  },
+  "assessments": [
+    {
+      "optional": false,
+      "intendToTake": true,
+      "date": null,
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "Examen mixto: test de 8 preguntas y 2 o 3 ejercicios de desarrollo",
+      "durationMinutes": 120,
+      "calculator": "none",
+      "materials": "Ninguno",
+      "coversTopicIds": [],
+      "courseworkMinutes": null,
+      "sections": [
+        {
+          "id": "T",
+          "title": "Test",
+          "kind": "mcq",
+          "maxPoints": 4,
+          "questions": 8,
+          "choose": null,
+          "mcq": {
+            "options": 3,
+            "correct": 0.5,
+            "wrong": -0.25,
+            "blank": 0
+          }
+        },
+        {
+          "id": "D",
+          "title": "Desarrollo",
+          "kind": "written",
+          "maxPoints": 6,
+          "questions": 3,
+          "choose": null,
+          "mcq": null
+        }
+      ],
+      "sectionRule": "T < 2 || D < 2 ? T : T + D",
+      "result": null,
+      "expected": null,
+      "id": "PP",
+      "title": "Prueba Presencial",
+      "kind": "exam"
+    },
+    {
+      "optional": true,
+      "intendToTake": true,
+      "date": "2026-11-12",
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "Examen de desarrollo en línea",
+      "durationMinutes": null,
+      "calculator": null,
+      "materials": "",
+      "coversTopicIds": [
+        "MA"
+      ],
+      "courseworkMinutes": null,
+      "sections": [],
+      "sectionRule": null,
+      "result": null,
+      "expected": null,
+      "id": "PEC1",
+      "title": "PEC 1 (desarrollo): Matrices",
+      "kind": "online_test"
+    },
+    {
+      "optional": true,
+      "intendToTake": true,
+      "date": "2026-12-17",
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "Prueba tipo test en línea",
+      "durationMinutes": null,
+      "calculator": null,
+      "materials": "",
+      "coversTopicIds": [
+        "SL",
+        "EV"
+      ],
+      "courseworkMinutes": null,
+      "sections": [],
+      "sectionRule": null,
+      "result": null,
+      "expected": null,
+      "id": "PEC2",
+      "title": "PEC 2 (test): Sistemas lineales y Espacios vectoriales",
+      "kind": "online_test"
+    }
+  ]
+}

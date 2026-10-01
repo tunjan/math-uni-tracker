@@ -6,8 +6,11 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { dateToISO, isoToDate, todayISO, type Confidence, type Example, type ISODate } from '@/lib/db'
+import { dateToISO, isoToDate, todayISO, type ISODate } from '@/lib/dates'
+import type { Confidence } from '@/lib/schema/common'
+import type { Example } from '@/lib/schema/progress'
 import { formatDate } from '@/lib/format'
+import { formatPlanning, parsePlanningInput, type PlanningField } from '@/lib/item-values'
 import { cn } from '@/lib/utils'
 import { Tag } from './Tag'
 import { Tex } from './Tex'
@@ -86,14 +89,14 @@ export function DateCell({
   )
 }
 
-export function StarsCell({ value, onSet }: { value: Confidence | null; onSet: (v: Confidence | null) => void }) {
+export function StarsCell({ value, onSet, disabled }: { value: Confidence | null; onSet: (v: Confidence | null) => void; disabled?: boolean }) {
   const [hover, setHover] = useState<number | null>(null)
-  const shown = hover ?? value ?? 0
+  const shown = (disabled ? null : hover) ?? value ?? 0
   return (
-    <div className="group/stars flex items-center gap-0.5" onMouseLeave={() => setHover(null)}>
+    <fieldset disabled={disabled} className="group/stars flex items-center gap-0.5" onMouseLeave={() => setHover(null)}>
       <button type="button" tabIndex={-1} aria-label="Zero stars" onClick={() => onSet(value === 0 ? null : 0)}
         className={cn('mr-0.5 grid size-4 place-items-center rounded text-muted-foreground/60 hover:text-foreground',
-          value === 0 ? 'text-foreground' : 'opacity-0 group-hover/stars:opacity-100')}>
+          value === 0 ? 'text-foreground' : 'opacity-0 group-enabled/stars:group-hover/stars:opacity-100')}>
         <Ban className="size-3" />
       </button>
       {([1, 2, 3, 4, 5] as const).map((n) => (
@@ -102,7 +105,7 @@ export function StarsCell({ value, onSet }: { value: Confidence | null; onSet: (
           <Star className={cn('size-3.5', n <= shown ? 'fill-rating text-rating' : 'text-foreground/20')} />
         </button>
       ))}
-    </div>
+    </fieldset>
   )
 }
 
@@ -208,6 +211,60 @@ function ExamplesPopover({ anchor, value, onCommit, onCancel }: { anchor: React.
           <span className="flex-1" />
           <Button size="xs" variant="ghost" onClick={onCancel}>Cancel</Button>
           <Button size="xs" onClick={() => onCommit(clean())}>Save</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+const PLANNING_LABEL: Record<PlanningField, string> = { estMinutes: 'Estimated minutes', examWeight: 'Exam weight (% of past papers)', difficulty: 'Difficulty (1–5)' }
+
+/**
+ * Est., exam weight and difficulty. Shows your value where you set one (with a dot), else the AI's.
+ * Saving a blank, or "Use AI value", removes your override.
+ */
+export function PlanningCell({ field, value, aiValue, edited, editing, onCommit, onCancel }: EditProps<number | undefined> & {
+  field: PlanningField
+  value: number | null
+  aiValue: number | null
+  edited: boolean
+}) {
+  const anchor = useRef<HTMLDivElement>(null)
+  return (
+    <div ref={anchor} className="flex h-full w-full items-center gap-1.5 tabular-nums">
+      {edited && <span className="size-1.5 shrink-0 rounded-full bg-primary" title={`Your value. AI estimate: ${formatPlanning(field, aiValue) || 'none'}`} />}
+      <span className={cn('truncate', value == null && 'text-muted-foreground')}>{value == null ? '–' : formatPlanning(field, value)}</span>
+      {editing && <PlanningPopover anchor={anchor} field={field} value={value} aiValue={aiValue} edited={edited} onCommit={onCommit} onCancel={onCancel} />}
+    </div>
+  )
+}
+
+function PlanningPopover({ anchor, field, value, aiValue, edited, onCommit, onCancel }: {
+  anchor: React.RefObject<HTMLDivElement | null>
+  field: PlanningField
+  value: number | null
+  aiValue: number | null
+  edited: boolean
+  onCommit: (v: number | undefined) => void
+  onCancel: () => void
+}) {
+  const shown = value == null ? '' : field === 'examWeight' ? String(Math.round(value * 100)) : String(value)
+  const [draft, setDraft] = useState(shown)
+  const parsed = parsePlanningInput(field, draft)
+  const commit = () => parsed.ok && onCommit(parsed.value)
+  return (
+    <Popover open onOpenChange={(open, d) => !open && (closeCommits(d) && draft !== shown ? commit() : onCancel())}>
+      <PopoverContent anchor={anchor} align="start" className="w-64" finalFocus={false}>
+        <label className="grid gap-1">
+          <span className="text-xs text-muted-foreground">{PLANNING_LABEL[field]}</span>
+          <Input autoFocus value={draft} inputMode="decimal" aria-invalid={!parsed.ok}
+            onChange={(e) => setDraft(e.target.value)} onFocus={(e) => e.currentTarget.select()}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit() } }} className="h-7 text-[13px] tabular-nums" />
+        </label>
+        {!parsed.ok && <span className="text-xs text-destructive">{parsed.error}</span>}
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>AI: {formatPlanning(field, aiValue) || 'none'}</span>
+          <Button size="xs" variant="ghost" disabled={!edited} onClick={() => onCommit(undefined)}>Use AI value</Button>
         </div>
       </PopoverContent>
     </Popover>

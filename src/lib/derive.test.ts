@@ -1,28 +1,32 @@
 import { describe, expect, it } from 'vitest'
-import { indexCurriculum, type Curriculum } from './curriculum'
-import { emptyItem, type ItemProgress, type SubtopicProgress, type TestAttempt } from './db'
+import { indexStructure } from './course-index'
+import { emptyItemProgress as emptyItem } from './progress-rules'
+import type { ItemProgress, SubtopicProgress, TestAttempt } from './schema/progress'
+import type { CourseStructure } from './schema/structure'
 import { addDays, deriveAll, findOrphans } from './derive'
 
 // A → B (B needs A), plus C (no prerequisites) in a second topic. Each subtopic has two items.
-const curriculum: Curriculum = {
-  version: 1,
+const it2 = (id: string, kind: 'definition' | 'theorem', title: string) => ({ id, kind, title, estMinutes: 30, examWeight: null, difficulty: 2 })
+const curriculum: CourseStructure = {
+  version: 2,
+  retiredIds: [],
   topics: [
     {
       id: 'GR',
       title: 'Groups',
       subtopics: [
-        { id: 'GR.01', title: 'A', prerequisites: [], items: [{ id: 'GR.01.1', kind: 'definition', title: 'a1' }, { id: 'GR.01.2', kind: 'theorem', title: 'a2' }] },
-        { id: 'GR.02', title: 'B', prerequisites: ['GR.01'], items: [{ id: 'GR.02.1', kind: 'definition', title: 'b1' }, { id: 'GR.02.2', kind: 'theorem', title: 'b2' }] },
+        { id: 'GR.01', title: 'A', prerequisites: [], items: [it2('GR.01.1', 'definition', 'a1'), it2('GR.01.2', 'theorem', 'a2')] },
+        { id: 'GR.02', title: 'B', prerequisites: ['GR.01'], items: [it2('GR.02.1', 'definition', 'b1'), it2('GR.02.2', 'theorem', 'b2')] },
       ],
     },
     {
       id: 'LA',
       title: 'Linear algebra',
-      subtopics: [{ id: 'LA.01', title: 'C', prerequisites: ['GR.02'], items: [{ id: 'LA.01.1', kind: 'definition', title: 'c1' }, { id: 'LA.01.2', kind: 'theorem', title: 'c2' }] }],
+      subtopics: [{ id: 'LA.01', title: 'C', prerequisites: ['GR.02'], items: [it2('LA.01.1', 'definition', 'c1'), it2('LA.01.2', 'theorem', 'c2')] }],
     },
   ],
 }
-const index = indexCurriculum(curriculum)
+const index = indexStructure(curriculum)
 
 type ItemSpec = Partial<Pick<ItemProgress, 'dateStarted' | 'dateFinished' | 'confidence'>>
 function setup(items: Record<string, ItemSpec>, tests: Record<string, [string, number][]> = {}) {
@@ -30,7 +34,7 @@ function setup(items: Record<string, ItemSpec>, tests: Record<string, [string, n
   const subMap = new Map<string, SubtopicProgress>(
     Object.entries(tests).map(([id, ts]) => [
       id,
-      { id, books: [], updatedAt: '', testAttempts: ts.map(([date, score], i): TestAttempt => ({ id: `${id}-${i}`, date, score: score as TestAttempt['score'], weakPoints: '' })) },
+      { id, courseKey: '', books: [], updatedAt: '', testAttempts: ts.map(([date, score], i): TestAttempt => ({ id: `${id}-${i}`, date, score: score as TestAttempt['score'], weakPoints: '', source: 'manual', gradingId: null, percent: null })) },
     ]),
   )
   return deriveAll(index, itemMap, subMap)
@@ -176,16 +180,26 @@ describe('derived dates and rollups', () => {
   })
 })
 
+describe('estimated minutes', () => {
+  it('rollups sum the effective estimates (overrides win) and what is left unfinished', () => {
+    const d = setup({ 'GR.01.1': { dateStarted: '2026-01-01', dateFinished: '2026-01-02' } }, {})
+    expect([d.subtopics.get('GR.01')!.rollup.minutesTotal, d.subtopics.get('GR.01')!.rollup.minutesLeft]).toEqual([60, 30])
+    const withOverride = deriveAll(index, new Map([['GR.02.1', { ...emptyItem('GR.02.1'), overrides: { estMinutes: 90 } }]]), new Map())
+    expect(withOverride.topics.get('GR')!.minutesTotal).toBe(30 * 3 + 90)
+    expect(withOverride.overall.minutesLeft).toBe(30 * 5 + 90)
+  })
+})
+
 describe('orphans', () => {
   it('lists records whose ids are not in the curriculum, and nothing else', () => {
     const orphans = findOrphans(
       index,
       [{ ...emptyItem('GR.01.1'), notes: 'kept' }, { ...emptyItem('GR.09.9'), notes: 'old note', confidence: 3 }],
-      [{ id: 'GR.01', books: [], testAttempts: [], updatedAt: '' }, { id: 'XX.01', books: [], testAttempts: [{ id: 't', date: '2026-01-01', score: 2, weakPoints: '' }], updatedAt: '' }],
+      [{ id: 'GR.01', courseKey: '', books: [], testAttempts: [], updatedAt: '' }, { id: 'XX.01', courseKey: '', books: [], testAttempts: [{ id: 't', date: '2026-01-01', score: 2, weakPoints: '', source: 'manual', gradingId: null, percent: null }], updatedAt: '' }],
       ['GR.01', 'XX.01', 'XX.01'],
     )
-    expect(orphans.map((o) => [o.id, o.record])).toEqual([['GR.09.9', 'item'], ['XX.01', 'subtopic'], ['XX.01', 'pdf']])
+    expect(orphans.map((o) => [o.id, o.record])).toEqual([['GR.09.9', 'item'], ['XX.01', 'subtopic'], ['XX.01', 'document']])
     expect(orphans[0].summary).toContain('old note')
-    expect(orphans[2].summary).toBe('2 PDFs')
+    expect(orphans[2].summary).toBe('2 documents')
   })
 })

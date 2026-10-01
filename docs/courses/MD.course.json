@@ -1,0 +1,821 @@
+{
+  "schema": "course/v1",
+  "course": {
+    "key": "MD",
+    "code": "61021051",
+    "title": "Matemática Discreta",
+    "credits": 6,
+    "level": "Grado en Matemáticas, primer curso, primer semestre",
+    "language": "es",
+    "textbooks": [
+      {
+        "title": "Elementos de Matemática Discreta",
+        "authors": "Emilio Bujalance García y otros",
+        "edition": "3.ª ed., Sanz y Torres",
+        "role": "theory"
+      },
+      {
+        "title": "Problemas de Matemática Discreta",
+        "authors": "Emilio Bujalance García y otros",
+        "edition": "1.ª ed., Sanz y Torres",
+        "role": "problems"
+      }
+    ],
+    "hue": "purple",
+    "scaleMax": 10,
+    "passMark": 5,
+    "gradeBands": [
+      {
+        "label": "Sobresaliente",
+        "min": 9
+      },
+      {
+        "label": "Notable",
+        "min": 7
+      },
+      {
+        "label": "Aprobado",
+        "min": 5
+      },
+      {
+        "label": "Suspenso",
+        "min": 0
+      }
+    ],
+    "target": null,
+    "sitting": "ordinary",
+    "finalRule": {
+      "ordinary": "PP < 5 ? PP : min(10, PP + ((taken(PEC) && PEC >= 5) ? PEC / 10 : 0) + min(NEC, PP < 6 ? ((taken(PEC) && PEC >= 5) ? 3 : 0) : PP < 7 ? ((taken(PEC) && PEC >= 5) ? 2 : 0) : PP < 8 ? ((taken(PEC) && PEC >= 5) ? 1 : 0) : PP < 9 ? 1 : 0.5))",
+      "extraordinary": null
+    },
+    "structure": {
+      "version": 2,
+      "topics": [
+        {
+          "id": "TN",
+          "title": "Teoría elemental de números",
+          "subtopics": [
+            {
+              "id": "TN.01",
+              "title": "Algoritmos de la división y de Euclides",
+              "prerequisites": [],
+              "items": [
+                {
+                  "id": "TN.01.1",
+                  "kind": "theorem",
+                  "title": "Algoritmo de la división en $\\mathbb Z$",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.01.2",
+                  "kind": "definition",
+                  "title": "Divisibilidad, máximo común divisor y mínimo común múltiplo",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "TN.01.3",
+                  "kind": "technique",
+                  "title": "Algoritmo de Euclides",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.01.4",
+                  "kind": "theorem",
+                  "title": "Identidad de Bézout",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TN.01.5",
+                  "kind": "technique",
+                  "title": "Algoritmo de Euclides extendido: coeficientes de Bézout",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TN.01.6",
+                  "kind": "theorem",
+                  "title": "$\\operatorname{mcd}(a,b)\\cdot\\operatorname{mcm}(a,b)=|ab|$",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "TN.02",
+              "title": "Números primos y Teorema Fundamental de la Aritmética",
+              "prerequisites": [
+                "TN.01"
+              ],
+              "items": [
+                {
+                  "id": "TN.02.1",
+                  "kind": "definition",
+                  "title": "Número primo; números primos entre sí",
+                  "estMinutes": 20,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "TN.02.2",
+                  "kind": "theorem",
+                  "title": "Lema de Euclides: si $p\\mid ab$, entonces $p\\mid a$ o $p\\mid b$",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.02.3",
+                  "kind": "theorem",
+                  "title": "Teorema Fundamental de la Aritmética",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TN.02.4",
+                  "kind": "theorem",
+                  "title": "Existen infinitos números primos",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.02.5",
+                  "kind": "technique",
+                  "title": "mcd y mcm a partir de la factorización; número de divisores",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "TN.03",
+              "title": "El principio de inducción",
+              "prerequisites": [],
+              "items": [
+                {
+                  "id": "TN.03.1",
+                  "kind": "theorem",
+                  "title": "Principio de inducción",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.03.2",
+                  "kind": "theorem",
+                  "title": "Inducción fuerte y principio de buena ordenación",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TN.03.3",
+                  "kind": "exercise",
+                  "title": "Demostraciones por inducción: igualdades, desigualdades y divisibilidad",
+                  "estMinutes": 75,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "TN.04",
+              "title": "Ecuaciones diofánticas",
+              "prerequisites": [
+                "TN.01"
+              ],
+              "items": [
+                {
+                  "id": "TN.04.1",
+                  "kind": "theorem",
+                  "title": "$ax+by=c$ tiene solución entera si y solo si $\\operatorname{mcd}(a,b)\\mid c$",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.04.2",
+                  "kind": "technique",
+                  "title": "Solución general de una ecuación diofántica lineal",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TN.04.3",
+                  "kind": "exercise",
+                  "title": "Problemas que se modelizan con ecuaciones diofánticas",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "TN.05",
+              "title": "Congruencias",
+              "prerequisites": [
+                "TN.02",
+                "TN.04"
+              ],
+              "items": [
+                {
+                  "id": "TN.05.1",
+                  "kind": "definition",
+                  "title": "Congruencia módulo $n$ y $\\mathbb Z_n$",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.05.2",
+                  "kind": "theorem",
+                  "title": "Propiedades aritméticas de las congruencias",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.05.3",
+                  "kind": "technique",
+                  "title": "Resolución de congruencias lineales $ax\\equiv b \\pmod n$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TN.05.4",
+                  "kind": "theorem",
+                  "title": "Teorema chino de los restos",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "TN.05.5",
+                  "kind": "theorem",
+                  "title": "Pequeño teorema de Fermat y teorema de Euler",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "TN.05.6",
+                  "kind": "exercise",
+                  "title": "Cálculo de restos de potencias grandes",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "TN.06",
+              "title": "Sistemas de numeración y criterios de divisibilidad",
+              "prerequisites": [
+                "TN.05"
+              ],
+              "items": [
+                {
+                  "id": "TN.06.1",
+                  "kind": "theorem",
+                  "title": "Representación de un entero en base $b$",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.06.2",
+                  "kind": "technique",
+                  "title": "Cambio de base de numeración",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.06.3",
+                  "kind": "theorem",
+                  "title": "Criterios de divisibilidad por 2, 3, 5, 9 y 11",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TN.06.4",
+                  "kind": "example",
+                  "title": "Dígitos de control: la letra del DNI y el ISBN",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "TG",
+          "title": "Introducción a la teoría de grafos",
+          "subtopics": [
+            {
+              "id": "TG.01",
+              "title": "Grafos, digrafos y multigrafos",
+              "prerequisites": [],
+              "items": [
+                {
+                  "id": "TG.01.1",
+                  "kind": "definition",
+                  "title": "Grafo, vértices, aristas y grado; digrafo y multigrafo",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "TG.01.2",
+                  "kind": "theorem",
+                  "title": "Lema del apretón de manos: $\\sum_v \\deg v=2|E|$",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.01.3",
+                  "kind": "definition",
+                  "title": "Subgrafo, grafo completo, grafo bipartito e isomorfismo de grafos",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.01.4",
+                  "kind": "definition",
+                  "title": "Caminos, ciclos, conexión y componentes conexas",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.01.5",
+                  "kind": "definition",
+                  "title": "Matrices de adyacencia y de incidencia",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.01.6",
+                  "kind": "definition",
+                  "title": "Árbol y sus caracterizaciones; $|E|=|V|-1$",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "TG.02",
+              "title": "Grafos eulerianos y hamiltonianos",
+              "prerequisites": [
+                "TG.01"
+              ],
+              "items": [
+                {
+                  "id": "TG.02.1",
+                  "kind": "definition",
+                  "title": "Camino y circuito euleriano",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.02.2",
+                  "kind": "theorem",
+                  "title": "Teorema de Euler: caracterización por los grados",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TG.02.3",
+                  "kind": "definition",
+                  "title": "Ciclo hamiltoniano",
+                  "estMinutes": 30,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.02.4",
+                  "kind": "theorem",
+                  "title": "Condiciones suficientes de Dirac y de Ore",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TG.02.5",
+                  "kind": "exercise",
+                  "title": "Decidir si un grafo es euleriano o hamiltoniano",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "TG.03",
+              "title": "Exploración de grafos",
+              "prerequisites": [
+                "TG.01"
+              ],
+              "items": [
+                {
+                  "id": "TG.03.1",
+                  "kind": "technique",
+                  "title": "Búsqueda en anchura y en profundidad",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.03.2",
+                  "kind": "technique",
+                  "title": "Algoritmo de Dijkstra: camino más corto",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TG.03.3",
+                  "kind": "technique",
+                  "title": "Árbol generador de peso mínimo: algoritmos de Kruskal y de Prim",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TG.03.4",
+                  "kind": "example",
+                  "title": "El problema del viajante",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "TG.04",
+              "title": "Mapas y coloraciones",
+              "prerequisites": [
+                "TG.01"
+              ],
+              "items": [
+                {
+                  "id": "TG.04.1",
+                  "kind": "definition",
+                  "title": "Grafo plano y grafo planar; caras",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.04.2",
+                  "kind": "theorem",
+                  "title": "Fórmula de Euler: $v-e+c=2$",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "TG.04.3",
+                  "kind": "theorem",
+                  "title": "$K_5$ y $K_{3,3}$ no son planares; teorema de Kuratowski",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "TG.04.4",
+                  "kind": "definition",
+                  "title": "Coloración y número cromático",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "TG.04.5",
+                  "kind": "theorem",
+                  "title": "Teorema de los cinco colores (y el de los cuatro colores)",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "TG.04.6",
+                  "kind": "exercise",
+                  "title": "Calcular el número cromático de un grafo",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "MC",
+          "title": "Métodos combinatorios",
+          "subtopics": [
+            {
+              "id": "MC.01",
+              "title": "Técnicas básicas",
+              "prerequisites": [],
+              "items": [
+                {
+                  "id": "MC.01.1",
+                  "kind": "theorem",
+                  "title": "Principios de la suma y del producto",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 1
+                },
+                {
+                  "id": "MC.01.2",
+                  "kind": "theorem",
+                  "title": "Principio del palomar",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MC.01.3",
+                  "kind": "exercise",
+                  "title": "Problemas con el principio del palomar",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "MC.02",
+              "title": "Permutaciones, variaciones y combinaciones",
+              "prerequisites": [
+                "MC.01"
+              ],
+              "items": [
+                {
+                  "id": "MC.02.1",
+                  "kind": "definition",
+                  "title": "Variaciones y permutaciones, con y sin repetición",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MC.02.2",
+                  "kind": "definition",
+                  "title": "Combinaciones, con y sin repetición",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MC.02.3",
+                  "kind": "technique",
+                  "title": "Elegir el modelo de recuento adecuado",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MC.02.4",
+                  "kind": "example",
+                  "title": "La lotería primitiva",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                }
+              ]
+            },
+            {
+              "id": "MC.03",
+              "title": "El teorema del binomio de Newton",
+              "prerequisites": [
+                "MC.02",
+                "TN.03"
+              ],
+              "items": [
+                {
+                  "id": "MC.03.1",
+                  "kind": "theorem",
+                  "title": "Teorema del binomio de Newton",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MC.03.2",
+                  "kind": "theorem",
+                  "title": "Identidades combinatorias y triángulo de Pascal",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MC.03.3",
+                  "kind": "theorem",
+                  "title": "Coeficientes multinomiales",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                }
+              ]
+            },
+            {
+              "id": "MC.04",
+              "title": "El principio de inclusión–exclusión",
+              "prerequisites": [
+                "MC.02"
+              ],
+              "items": [
+                {
+                  "id": "MC.04.1",
+                  "kind": "theorem",
+                  "title": "Principio de inclusión–exclusión",
+                  "estMinutes": 50,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MC.04.2",
+                  "kind": "example",
+                  "title": "Desarreglos",
+                  "estMinutes": 45,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MC.04.3",
+                  "kind": "exercise",
+                  "title": "Contar aplicaciones sobreyectivas",
+                  "estMinutes": 60,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            },
+            {
+              "id": "MC.05",
+              "title": "Recursividad y relaciones recurrentes",
+              "prerequisites": [
+                "MC.02",
+                "TN.03"
+              ],
+              "items": [
+                {
+                  "id": "MC.05.1",
+                  "kind": "definition",
+                  "title": "Relación de recurrencia lineal",
+                  "estMinutes": 40,
+                  "examWeight": null,
+                  "difficulty": 2
+                },
+                {
+                  "id": "MC.05.2",
+                  "kind": "technique",
+                  "title": "Recurrencias lineales homogéneas con coeficientes constantes",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 3
+                },
+                {
+                  "id": "MC.05.3",
+                  "kind": "technique",
+                  "title": "Recurrencias no homogéneas: solución particular",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 4
+                },
+                {
+                  "id": "MC.05.4",
+                  "kind": "exercise",
+                  "title": "Plantear una recurrencia a partir de un problema de recuento",
+                  "estMinutes": 70,
+                  "examWeight": null,
+                  "difficulty": 4
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "retiredIds": []
+    },
+    "pastPapers": []
+  },
+  "assessments": [
+    {
+      "optional": false,
+      "intendToTake": true,
+      "date": null,
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "Examen mixto: test de 8 preguntas y 2 problemas a elegir entre 3",
+      "durationMinutes": 120,
+      "calculator": "basic",
+      "materials": "Calculadora no científica básica de cuatro operaciones",
+      "coversTopicIds": [],
+      "courseworkMinutes": null,
+      "sections": [
+        {
+          "id": "T",
+          "title": "Test",
+          "kind": "mcq",
+          "maxPoints": 4,
+          "questions": 8,
+          "choose": null,
+          "mcq": {
+            "options": 3,
+            "correct": 0.5,
+            "wrong": -0.25,
+            "blank": 0
+          }
+        },
+        {
+          "id": "D",
+          "title": "Desarrollo",
+          "kind": "written",
+          "maxPoints": 6,
+          "questions": 3,
+          "choose": 2,
+          "mcq": null
+        }
+      ],
+      "sectionRule": "T < 2 || D < 2 ? T : T + D",
+      "result": null,
+      "expected": null,
+      "id": "PP",
+      "title": "Prueba Presencial",
+      "kind": "exam"
+    },
+    {
+      "optional": true,
+      "intendToTake": true,
+      "date": "2026-11-19",
+      "dateEnd": "2026-11-24",
+      "time": "08:00",
+      "extraordinaryDate": null,
+      "maxPoints": 10,
+      "format": "Grabación de un vídeo resolviendo una actividad del Tema 1",
+      "durationMinutes": null,
+      "calculator": null,
+      "materials": "",
+      "coversTopicIds": [
+        "TN"
+      ],
+      "courseworkMinutes": 240,
+      "sections": [],
+      "sectionRule": null,
+      "result": null,
+      "expected": null,
+      "id": "PEC",
+      "title": "PEC: vídeo sobre el Tema 1",
+      "kind": "coursework"
+    },
+    {
+      "optional": true,
+      "intendToTake": true,
+      "date": null,
+      "dateEnd": null,
+      "time": null,
+      "extraordinaryDate": null,
+      "maxPoints": 3,
+      "format": "Cuestionarios, coevaluación, foros y tutorías, octubre a enero",
+      "durationMinutes": null,
+      "calculator": null,
+      "materials": "",
+      "coversTopicIds": [],
+      "courseworkMinutes": null,
+      "sections": [],
+      "sectionRule": null,
+      "result": null,
+      "expected": null,
+      "id": "NEC",
+      "title": "Nota de Evaluación Continua (participación)",
+      "kind": "participation"
+    }
+  ]
+}

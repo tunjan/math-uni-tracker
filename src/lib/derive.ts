@@ -1,5 +1,10 @@
-import type { CurriculumIndex, Subtopic } from './curriculum'
-import type { ISODate, ItemProgress, SubtopicProgress, TestAttempt } from './db'
+import type { CourseIndex } from './course-index'
+import { addDays, type ISODate } from './dates'
+import { itemValues } from './item-values'
+import type { ItemProgress, SubtopicProgress, TestAttempt } from './schema/progress'
+import type { StructureSubtopic } from './schema/structure'
+
+export { addDays }
 
 export type Status = 'locked' | 'ready' | 'in_progress' | 'completed' | 'warning'
 
@@ -16,6 +21,9 @@ export interface Rollup {
   /** Internal accumulators for meanConfidence. */
   ratedCount: number
   ratedSum: number
+  /** Estimated minutes (your overrides, else the AI's): all items, and items not yet finished. */
+  minutesTotal: number
+  minutesLeft: number
 }
 
 export interface SubtopicDerived {
@@ -37,17 +45,11 @@ export interface Derived {
   overall: Rollup
 }
 
-/** Calendar arithmetic on 'YYYY-MM-DD', time-zone free. */
-export function addDays(date: ISODate, n: number): ISODate {
-  const [y, m, d] = date.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
-}
-
 const minOf = (xs: ISODate[]) => (xs.length ? xs.reduce((a, b) => (b < a ? b : a)) : null)
 const maxOf = (xs: ISODate[]) => (xs.length ? xs.reduce((a, b) => (b > a ? b : a)) : null)
 
 const emptyRollup = (): Rollup => ({
-  itemsFinished: 0, itemsTotal: 0, subtopicsCompleted: 0, subtopicsTotal: 0, meanConfidence: null, ratedCount: 0, ratedSum: 0,
+  itemsFinished: 0, itemsTotal: 0, subtopicsCompleted: 0, subtopicsTotal: 0, meanConfidence: null, ratedCount: 0, ratedSum: 0, minutesTotal: 0, minutesLeft: 0,
 })
 
 function addInto(into: Rollup, r: Rollup) {
@@ -57,11 +59,13 @@ function addInto(into: Rollup, r: Rollup) {
   into.subtopicsTotal += r.subtopicsTotal
   into.ratedCount += r.ratedCount
   into.ratedSum += r.ratedSum
+  into.minutesTotal += r.minutesTotal
+  into.minutesLeft += r.minutesLeft
   into.meanConfidence = into.ratedCount ? into.ratedSum / into.ratedCount : null
 }
 
 /** Everything about a subtopic that depends only on its own data (not on prerequisites). */
-export function deriveOwn(subtopic: Subtopic, items: Map<string, ItemProgress>, tests: TestAttempt[]) {
+export function deriveOwn(subtopic: StructureSubtopic, items: Map<string, ItemProgress>, tests: TestAttempt[]) {
   const progress = subtopic.items.map((i) => items.get(i.id))
   const starts = progress.flatMap((p) => (p?.dateStarted ? [p.dateStarted] : []))
   const finishes = progress.flatMap((p) => (p?.dateFinished ? [p.dateFinished] : []))
@@ -89,6 +93,8 @@ export function deriveOwn(subtopic: Subtopic, items: Map<string, ItemProgress>, 
     ratedCount: ratings.length,
     ratedSum,
     meanConfidence: ratings.length ? ratedSum / ratings.length : null,
+    minutesTotal: subtopic.items.reduce((m, it, k) => m + itemValues(it, progress[k]).estMinutes, 0),
+    minutesLeft: subtopic.items.reduce((m, it, k) => m + (progress[k]?.dateFinished ? 0 : itemValues(it, progress[k]).estMinutes), 0),
   }
 
   return {
@@ -108,7 +114,7 @@ export function deriveOwn(subtopic: Subtopic, items: Map<string, ItemProgress>, 
  * (Ready vs Locked), so a prerequisite's Completed is judged on its own data alone.
  */
 export function deriveAll(
-  index: CurriculumIndex,
+  index: CourseIndex,
   items: Map<string, ItemProgress>,
   subtopicProgress: Map<string, SubtopicProgress>,
 ): Derived {
@@ -118,7 +124,7 @@ export function deriveAll(
   const subtopics = new Map<string, SubtopicDerived>()
   const topics = new Map<string, Rollup>()
   const overall = emptyRollup()
-  for (const t of index.curriculum.topics) {
+  for (const t of index.structure.topics) {
     const topicRollup = emptyRollup()
     for (const s of t.subtopics) {
       const o = own.get(s.id)!
@@ -135,16 +141,19 @@ export function deriveAll(
 
 export interface Orphan {
   id: string
-  record: 'item' | 'subtopic' | 'pdf'
+  record: 'item' | 'subtopic' | 'document'
   summary: string
 }
 
-/** Saved records whose IDs are no longer in the curriculum. They are listed, never deleted. */
+/**
+ * Saved records whose IDs are no longer in the course's structure. They are listed, never deleted.
+ * IDs here are local ('MA.01.2'): the caller strips the course key.
+ */
 export function findOrphans(
-  index: CurriculumIndex,
+  index: CourseIndex,
   items: ItemProgress[],
   subtopics: SubtopicProgress[],
-  pdfSubtopicIds: string[],
+  documentSubtopicIds: string[],
 ): Orphan[] {
   const out: Orphan[] = []
   for (const p of items) {
@@ -162,8 +171,8 @@ export function findOrphans(
     if (index.subtopics.has(s.id)) continue
     out.push({ id: s.id, record: 'subtopic', summary: `${s.books.length} books, ${s.testAttempts.length} test attempts` })
   }
-  const pdfCounts = new Map<string, number>()
-  for (const id of pdfSubtopicIds) if (!index.subtopics.has(id)) pdfCounts.set(id, (pdfCounts.get(id) ?? 0) + 1)
-  for (const [id, n] of pdfCounts) out.push({ id, record: 'pdf', summary: `${n} PDF${n > 1 ? 's' : ''}` })
+  const docCounts = new Map<string, number>()
+  for (const id of documentSubtopicIds) if (!index.subtopics.has(id)) docCounts.set(id, (docCounts.get(id) ?? 0) + 1)
+  for (const [id, n] of docCounts) out.push({ id, record: 'document', summary: `${n} document${n > 1 ? 's' : ''}` })
   return out.sort((a, b) => a.id.localeCompare(b.id))
 }
