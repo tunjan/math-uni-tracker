@@ -1,0 +1,177 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "katex/dist/katex.min.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --color-grid-line: var(--grid-line);
+    --color-row-hover: var(--row-hover);
+    --color-group-1: var(--group-1);
+    --color-group-2: var(--group-2);
+    --color-header: var(--header);
+    --color-rating: rgb(252 180 0);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(0 0% 20%);
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(0 0% 20%);
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(0 0% 20%);
+    --primary: rgb(45 127 249);
+    --primary-foreground: hsl(0 0% 100%);
+    --secondary: hsl(0 0% 95%);
+    --secondary-foreground: hsl(0 0% 20%);
+    --muted: hsl(0 0% 95%);
+    --muted-foreground: hsl(0 0% 46%);
+    --accent: hsl(0 0% 91%);
+    --accent-foreground: hsl(0 0% 20%);
+    --destructive: rgb(239 48 97);
+    --border: hsl(0 0% 88%);
+    --input: hsl(0 0% 88%);
+    --ring: rgb(45 127 249);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.375rem;
+    --sidebar: hsl(0 0% 98%);
+    --sidebar-foreground: hsl(0 0% 20%);
+    --sidebar-primary: rgb(45 127 249);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(0 0% 91%);
+    --sidebar-accent-foreground: hsl(0 0% 20%);
+    --sidebar-border: hsl(0 0% 88%);
+    --sidebar-ring: rgb(45 127 249);
+    --grid-line: hsl(0 0% 91%);
+    --row-hover: hsl(0 0% 98%);
+    --group-1: hsl(0 0% 95%);
+    --group-2: hsl(0 0% 98%);
+    --header: hsl(0 0% 98%);
+}
+
+.dark {
+    --background: hsl(0 0% 13%);
+    --foreground: hsl(0 0% 95%);
+    --card: hsl(0 0% 16%);
+    --card-foreground: hsl(0 0% 95%);
+    --popover: hsl(0 0% 16%);
+    --popover-foreground: hsl(0 0% 95%);
+    --primary: rgb(45 127 249);
+    --primary-foreground: hsl(0 0% 100%);
+    --secondary: hsl(0 0% 20%);
+    --secondary-foreground: hsl(0 0% 95%);
+    --muted: hsl(0 0% 17%);
+    --muted-foreground: hsl(0 0% 64%);
+    --accent: hsl(0 0% 22%);
+    --accent-foreground: hsl(0 0% 95%);
+    --destructive: rgb(239 48 97);
+    --border: hsl(0 0% 26%);
+    --input: hsl(0 0% 30%);
+    --ring: rgb(45 127 249);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: hsl(0 0% 11%);
+    --sidebar-foreground: hsl(0 0% 95%);
+    --sidebar-primary: rgb(45 127 249);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(0 0% 20%);
+    --sidebar-accent-foreground: hsl(0 0% 95%);
+    --sidebar-border: hsl(0 0% 22%);
+    --sidebar-ring: rgb(45 127 249);
+    --grid-line: hsl(0 0% 21%);
+    --row-hover: hsl(0 0% 16%);
+    --group-1: hsl(0 0% 19%);
+    --group-2: hsl(0 0% 16%);
+    --header: hsl(0 0% 16%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+body { font-size: 13px; -webkit-font-smoothing: antialiased; }
+.katex { font-size: 1.05em; }
+@media (max-width: 640px) {
+  :root { --title-w: 200px; }
+}
+
+/* Airtable select-option colours (Blocks SDK): Light2 background + paired text in light mode,
+   Dark1 background + Light2 text in dark mode — the pairs Airtable itself uses. */
+.tag { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 9999px;
+  font-size: 12px; line-height: 18px; white-space: nowrap; background: var(--tag-bg); color: var(--tag-fg); }
+.tag-link { border-radius: 4px; padding: 0 6px; }
+.tag-blue   { --tag-bg: rgb(207 223 255); --tag-fg: rgb(0 0 60); }
+.tag-cyan   { --tag-bg: rgb(208 240 253); --tag-fg: rgb(0 17 68); }
+.tag-teal   { --tag-bg: rgb(194 245 233); --tag-fg: rgb(0 47 46); }
+.tag-green  { --tag-bg: rgb(209 247 196); --tag-fg: rgb(0 34 0); }
+.tag-yellow { --tag-bg: rgb(255 234 182); --tag-fg: rgb(66 10 0); }
+.tag-orange { --tag-bg: rgb(254 226 213); --tag-fg: rgb(83 0 0); }
+.tag-red    { --tag-bg: rgb(255 220 229); --tag-fg: rgb(64 0 0); }
+.tag-pink   { --tag-bg: rgb(255 218 246); --tag-fg: rgb(58 0 33); }
+.tag-purple { --tag-bg: rgb(237 226 254); --tag-fg: rgb(12 0 62); }
+.tag-gray   { --tag-bg: rgb(238 238 238); --tag-fg: rgb(0 0 0); }
+.dark .tag-blue   { --tag-bg: rgb(39 80 174);  --tag-fg: rgb(207 223 255); }
+.dark .tag-cyan   { --tag-bg: rgb(11 118 183); --tag-fg: rgb(208 240 253); }
+.dark .tag-teal   { --tag-bg: rgb(6 160 155);  --tag-fg: rgb(194 245 233); }
+.dark .tag-green  { --tag-bg: rgb(51 138 23);  --tag-fg: rgb(209 247 196); }
+.dark .tag-yellow { --tag-bg: rgb(184 117 3);  --tag-fg: rgb(255 234 182); }
+.dark .tag-orange { --tag-bg: rgb(215 77 38);  --tag-fg: rgb(254 226 213); }
+.dark .tag-red    { --tag-bg: rgb(186 30 69);  --tag-fg: rgb(255 220 229); }
+.dark .tag-pink   { --tag-bg: rgb(178 21 139); --tag-fg: rgb(255 218 246); }
+.dark .tag-purple { --tag-bg: rgb(107 28 176); --tag-fg: rgb(237 226 254); }
+.dark .tag-gray   { --tag-bg: rgb(68 68 68);   --tag-fg: rgb(238 238 238); }
