@@ -14,7 +14,7 @@ describe('routes', () => {
   })
 
   it('round-trips', () => {
-    const rs: Route[] = [{ kind: 'global', view: 'settings' }, { kind: 'course', key: 'ALI27', tab: 'dash' }]
+    const rs: Route[] = [{ kind: 'global', view: 'settings' }, { kind: 'course', key: 'ALI27', tab: 'dash' }, { kind: 'setup', draftId: null }, { kind: 'setup', draftId: 'abc' }]
     for (const r of rs) expect(parseRoute(routeHash(r))).toEqual(r)
   })
 })

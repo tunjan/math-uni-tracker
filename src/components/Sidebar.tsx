@@ -1,4 +1,4 @@
-import { Archive, CalendarDays, ChevronsUpDown, CircleCheck, FileUp, FolderOpen, LayoutDashboard, Pencil, Plus, Settings } from 'lucide-react'
+import { Archive, CalendarDays, ChevronsUpDown, CircleCheck, FileUp, FolderOpen, LayoutDashboard, Pencil, Plus, Settings, Sparkles } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup,
   DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -86,8 +86,12 @@ export function Sidebar({ semesters, semester, onChooseSemester, onNewSemester, 
       <div className="mt-3 mb-1 flex items-center px-2 text-xs font-medium text-muted-foreground">
         <span className="flex-1">Courses</span>
         {semester && !semester.archived && (
-          <button type="button" onClick={onImportCourse} title="Import a course file" aria-label="Import a course file"
-            className="grid size-5 place-items-center rounded hover:bg-sidebar-accent"><FileUp className="size-3.5" /></button>
+          <>
+            <a href={routeHash({ kind: 'setup', draftId: null })} onClick={onNavigate} title="New course from its study guide, with AI" aria-label="New course with AI"
+              className="grid size-5 place-items-center rounded hover:bg-sidebar-accent"><Sparkles className="size-3.5" /></a>
+            <button type="button" onClick={onImportCourse} title="Import a course file" aria-label="Import a course file"
+              className="grid size-5 place-items-center rounded hover:bg-sidebar-accent"><FileUp className="size-3.5" /></button>
+          </>
         )}
       </div>
       {courses.length === 0 && (

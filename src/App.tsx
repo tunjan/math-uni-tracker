@@ -6,6 +6,7 @@ import { ComingSoon } from '@/components/ComingSoon'
 import { CourseView } from '@/components/course/CourseView'
 import { EditCourseDialog } from '@/components/course/EditCourseDialog'
 import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
+import { SetupView } from '@/components/course/SetupView'
 import { SemesterDialog } from '@/components/layout/SemesterDialog'
 import { NoticeBar } from '@/components/NoticeBar'
 import { SettingsView } from '@/components/settings/SettingsView'
@@ -54,7 +55,7 @@ export default function App() {
       onImportCourse={() => { setNavOpen(false); setImportOpen(true) }} />
   )
 
-  const title: ReactNode = route.kind === 'global' ? GLOBAL_TITLES[route.view] : routeCourse ? (
+  const title: ReactNode = route.kind === 'global' ? GLOBAL_TITLES[route.view] : route.kind === 'setup' ? 'Course setup' : routeCourse ? (
     <span className="flex min-w-0 items-center gap-2">
       <Tag hue={routeCourse.hue} link className="font-semibold">{routeCourse.key}</Tag>
       <span className="truncate">{routeCourse.title}</span>
@@ -89,7 +90,9 @@ export default function App() {
         {semesters.length === 0 ? (
           <Welcome onCreate={() => setSemesterDialog('new')} />
         ) : (
-          <Content route={route} course={routeCourse} />
+          route.kind === 'setup'
+            ? <SetupView draftId={route.draftId} semester={semester} courses={courses ?? []} />
+            : <Content route={route} course={routeCourse} />
         )}
       </main>
       <SemesterDialog open={semesterDialog !== null} onOpenChange={(o) => !o && setSemesterDialog(null)}
@@ -116,7 +119,7 @@ function Welcome({ onCreate }: { onCreate: () => void }) {
   )
 }
 
-function Content({ route, course }: { route: Route; course: Course | null | undefined }) {
+function Content({ route, course }: { route: Exclude<Route, { kind: 'setup' }>; course: Course | null | undefined }) {
   if (route.kind === 'global') {
     switch (route.view) {
       case 'today': return <ComingSoon title="Today" phase="3.5">Your checklist of today’s study sessions.</ComingSoon>

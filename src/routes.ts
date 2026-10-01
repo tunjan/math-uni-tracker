@@ -5,7 +5,7 @@ export type CourseTab = (typeof COURSE_TABS)[number]
 export const GLOBAL_VIEWS = ['today', 'calendar', 'dashboard', 'documents', 'settings'] as const
 export type GlobalView = (typeof GLOBAL_VIEWS)[number]
 
-export type Route = { kind: 'global'; view: GlobalView } | { kind: 'course'; key: string; tab: CourseTab }
+export type Route = { kind: 'global'; view: GlobalView } | { kind: 'course'; key: string; tab: CourseTab } | { kind: 'setup'; draftId: string | null }
 
 export const DEFAULT_ROUTE: Route = { kind: 'global', view: 'today' }
 
@@ -16,11 +16,13 @@ export function parseRoute(hash: string): Route {
     const tab = (COURSE_TABS as readonly string[]).includes(parts[2]) ? (parts[2] as CourseTab) : 'grid'
     return { kind: 'course', key: parts[1], tab }
   }
+  if (parts[0] === 'setup') return { kind: 'setup', draftId: parts[1] ?? null }
   if ((GLOBAL_VIEWS as readonly string[]).includes(parts[0])) return { kind: 'global', view: parts[0] as GlobalView }
   return DEFAULT_ROUTE
 }
 
-export const routeHash = (r: Route) => (r.kind === 'course' ? `#/c/${r.key}/${r.tab}` : `#/${r.view}`)
+export const routeHash = (r: Route) =>
+  r.kind === 'course' ? `#/c/${r.key}/${r.tab}` : r.kind === 'setup' ? `#/setup${r.draftId ? `/${r.draftId}` : ''}` : `#/${r.view}`
 
 export function navigate(r: Route) {
   location.hash = routeHash(r)
