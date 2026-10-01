@@ -632,9 +632,9 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **6.4 Apply feedback:** *(done)* on Accept, all or nothing: test attempts (source `ai_graded`, with the errors as weak points), confidence (only lowered), review events, then Replan. Reviewed gradings also feed the prompt generator's weak points and the planner's weakness factor (latest mark fraction per item).
 
 ### Milestone 7: dashboards and data safety
-- **7.1 Course dashboard:** progress by count and hours, plan vs actual, mastery heatmap, mocks chart, next sessions, reviews due.
-- **7.2 Predicted grade:** P(pass), range, honesty note.
-- **7.3 Semester dashboard** with countdowns.
+- **7.1 Course dashboard:** *(done)* progress by count and hours, plan vs actual (six weeks), mastery heatmap (click opens the subtopic), mocks chart with the pass line, next sessions, reviews due.
+- **7.2 Predicted grade:** *(done)* seeded Monte Carlo (4,000 draws): each component from reviewed mocks (recency-weighted), else confidence ratings (≥ 30 % of covered items rated), else a neutral 60 % with a wide spread; exam sections share one ability plus noise, so the real section rule (e.g. the eliminatory test) bites; then the final formula. Median, 10–90 % range, P(pass), P(target), band shares, the basis of each component, and the honesty note.
+- **7.3 Semester dashboard** *(done)* with countdowns: a card per course (progress, work left vs planned, prediction, P(pass), next assessment) and every dated assessment counting down; undated ones are listed.
 - **7.4 Zip export + progress JSON** (no secrets).
 - **7.5 Import with preview, safety backup and round-trip tests.**
 - **7.6 Backup banner (14 days) + storage warning.**

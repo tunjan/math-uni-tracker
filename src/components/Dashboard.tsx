@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import type { CourseIndex } from '@/lib/course-index'
-import type { SubtopicProgress } from '@/lib/schema/progress'
+import type { Course } from '@/lib/schema/course'
+import type { ItemProgress, SubtopicProgress } from '@/lib/schema/progress'
+import { CourseInsights } from './dashboard/CourseInsights'
 import { PASS_SCORE, type Derived, type Status } from '@/lib/derive'
 import { pct } from '@/lib/format'
 import { STATUS_META, topicHue, type Hue } from '@/lib/palette'
@@ -9,6 +11,8 @@ import { Tag } from './Tag'
 import { Tex } from './Tex'
 
 interface Props {
+  course: Course
+  progress: Map<string, ItemProgress>
   index: CourseIndex
   derived: Derived
   subtopicProgress: Map<string, SubtopicProgress>
@@ -46,7 +50,7 @@ function Panel({ title, children, aside }: { title: string; children: ReactNode;
   )
 }
 
-export function Dashboard({ index, derived, subtopicProgress, onOpenSubtopic, onSelectTopic }: Props) {
+export function Dashboard({ course, progress, index, derived, subtopicProgress, onOpenSubtopic, onSelectTopic }: Props) {
   const o = derived.overall
   const attempts = [...subtopicProgress.values()].filter((s) => index.subtopics.has(s.id)).flatMap((s) => s.testAttempts)
   const passed = attempts.filter((t) => t.score >= PASS_SCORE).length
@@ -66,6 +70,8 @@ export function Dashboard({ index, derived, subtopicProgress, onOpenSubtopic, on
           <Stat label="Mean confidence" value={o.meanConfidence == null ? '–' : o.meanConfidence.toFixed(1)}
             detail={o.ratedCount ? `over ${o.ratedCount} rated items` : 'No items rated yet'} />
         </div>
+
+        <CourseInsights course={course} index={index} derived={derived} progress={progress} onOpenSubtopic={onOpenSubtopic} />
 
         <Panel title="Subtopics by status" aside={<span className="text-xs text-muted-foreground tabular-nums">{o.subtopicsTotal} subtopics</span>}>
           <div className="space-y-3 px-4 py-3">

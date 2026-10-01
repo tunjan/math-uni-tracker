@@ -1,5 +1,4 @@
 import { useDeferredValue, useMemo, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { Lock, Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DocumentsView } from '@/components/documents/DocumentsView'
@@ -9,42 +8,17 @@ import { Grid, type SaveItem } from '@/components/Grid'
 import { useGrid } from '@/components/grid-model'
 import { CourseTabs } from '@/components/layout/CourseTabs'
 import { ExamsView } from './ExamsView'
+import { useCourseData } from './useCourseData'
 import { PlanTab } from '@/components/plan/PlanTab'
 import { OrphanPanel } from '@/components/Notices'
 import { SubtopicSheet } from '@/components/SubtopicSheet'
 import { Toolbar } from '@/components/Toolbar'
-import { indexStructure } from '@/lib/course-index'
-import { deriveAll, findOrphans } from '@/lib/derive'
-import { qualify, unqualify } from '@/lib/ids'
+import { qualify } from '@/lib/ids'
 import { reportError } from '@/lib/notify'
 import type { Course } from '@/lib/schema/course'
-import type { ItemProgress, SubtopicProgress } from '@/lib/schema/progress'
-import { db } from '@/lib/store/db'
-import { listItemProgress, listSubtopicProgress, updateItem } from '@/lib/store/progress'
+import { updateItem } from '@/lib/store/progress'
 import { buildRows, isFiltering, ROW_HEIGHT, shapeRows, usePrefs } from '@/lib/view'
 import { navigate, type CourseTab } from '@/routes'
-
-/** Everything the grid, side sheet and dashboard need, keyed by local IDs ('MA.01.2'). */
-function useCourseData(course: Course) {
-  const index = useMemo(() => indexStructure(course.structure), [course.structure])
-  const itemRows = useLiveQuery(() => listItemProgress(course.key), [course.key])
-  const subRows = useLiveQuery(() => listSubtopicProgress(course.key), [course.key])
-  const docSubtopics = useLiveQuery(
-    async () => (await db.documents.where('courseKey').equals(course.key).toArray()).flatMap((d) => (d.subtopicId ? [unqualify(d.subtopicId)] : [])),
-    [course.key],
-  )
-  const semesterArchived = useLiveQuery(async () => (await db.semesters.get(course.semesterId))?.archived ?? false, [course.semesterId])
-
-  const local = <T extends { id: string }>(rows: T[] | undefined) => (rows ?? []).map((r) => ({ ...r, id: unqualify(r.id) }))
-  const items = useMemo(() => local(itemRows), [itemRows])
-  const subs = useMemo(() => local(subRows), [subRows])
-  const progress = useMemo(() => new Map<string, ItemProgress>(items.map((p) => [p.id, p])), [items])
-  const subtopicProgress = useMemo(() => new Map<string, SubtopicProgress>(subs.map((s) => [s.id, s])), [subs])
-  const derived = useMemo(() => deriveAll(index, progress, subtopicProgress), [index, progress, subtopicProgress])
-  const orphans = useMemo(() => findOrphans(index, items, subs, docSubtopics ?? []), [index, items, subs, docSubtopics])
-  const loaded = itemRows !== undefined && subRows !== undefined && semesterArchived !== undefined
-  return { index, progress, subtopicProgress, derived, orphans, loaded, readOnly: course.archived || semesterArchived === true }
-}
 
 export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) {
   const data = useCourseData(course)
@@ -109,7 +83,7 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
         </>
       )}
       {tab === 'dash' && (
-        <Dashboard index={index} derived={derived} subtopicProgress={subtopicProgress} onOpenSubtopic={setSheetId}
+        <Dashboard course={course} progress={progress} index={index} derived={derived} subtopicProgress={subtopicProgress} onOpenSubtopic={setSheetId}
           onSelectTopic={(id) => { setPrefs({ topicId: id }); navigate({ kind: 'course', key: course.key, tab: 'grid' }) }} />
       )}
       {tab === 'plan' && <PlanTab course={course} />}

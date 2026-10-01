@@ -2,10 +2,10 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Menu, Moon, Pencil, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
-import { ComingSoon } from '@/components/ComingSoon'
 import { DocView } from '@/components/documents/DocView'
 import { DocumentsView } from '@/components/documents/DocumentsView'
 import { GradingView } from '@/components/grading/GradingView'
+import { SemesterDashboard } from '@/components/dashboard/SemesterDashboard'
 import { CourseView } from '@/components/course/CourseView'
 import { EditCourseDialog } from '@/components/course/EditCourseDialog'
 import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
@@ -17,7 +17,7 @@ import { TodayView } from '@/components/plan/TodayView'
 import { WeekView } from '@/components/plan/WeekView'
 import { Sidebar } from '@/components/Sidebar'
 import { Tag } from '@/components/Tag'
-import type { Course } from '@/lib/schema/course'
+import type { Course, Semester } from '@/lib/schema/course'
 import { requestPersistence } from '@/lib/store/db'
 import { useAssessments, useCourse, useCourseProgress, useCourses, useCurrentSemester, useSemesters } from '@/lib/store/hooks'
 import { useTheme } from '@/lib/theme'
@@ -99,7 +99,7 @@ export default function App() {
             ? <SetupView draftId={route.draftId} semester={semester} courses={courses ?? []} />
             : route.kind === 'doc' ? <DocView key={route.id} id={route.id} />
             : route.kind === 'grading' ? <GradingView key={route.id} id={route.id} />
-            : <Content route={route} course={routeCourse} />
+            : <Content route={route} course={routeCourse} semester={semester ?? null} courses={courses ?? []} />
         )}
       </main>
       <SemesterDialog open={semesterDialog !== null} onOpenChange={(o) => !o && setSemesterDialog(null)}
@@ -126,12 +126,12 @@ function Welcome({ onCreate }: { onCreate: () => void }) {
   )
 }
 
-function Content({ route, course }: { route: Exclude<Route, { kind: 'setup' | 'doc' | 'grading' }>; course: Course | null | undefined }) {
+function Content({ route, course, semester, courses }: { route: Exclude<Route, { kind: 'setup' | 'doc' | 'grading' }>; course: Course | null | undefined; semester: Semester | null; courses: Course[] }) {
   if (route.kind === 'global') {
     switch (route.view) {
       case 'today': return <TodayView />
       case 'calendar': return <WeekView />
-      case 'dashboard': return <ComingSoon title="Semester dashboard" phase="7.3">All courses side by side, with exam countdowns.</ComingSoon>
+      case 'dashboard': return <SemesterDashboard semester={semester} courses={courses} />
       case 'documents': return <DocumentsView />
       case 'settings': return <SettingsView />
     }
