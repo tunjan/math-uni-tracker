@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
+import type { ISODate } from './dates'
 
-export type ISODate = string // 'YYYY-MM-DD', a local calendar date
+export { dateToISO, isoToDate, todayISO, type ISODate } from './dates'
 export type Confidence = 0 | 1 | 2 | 3 | 4 | 5
 
 export interface Example {
@@ -92,16 +93,6 @@ export async function updateItem(id: string, patch: ItemPatch) {
 export function requestPersistence() {
   void navigator.storage?.persist?.().catch(() => undefined)
 }
-
-export const isoToDate = (s: ISODate) => {
-  const [y, m, d] = s.split('-').map(Number)
-  return new Date(y, m - 1, d)
-}
-
-export const dateToISO = (d: Date): ISODate =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-
-export const todayISO = (): ISODate => dateToISO(new Date())
 
 export const emptySubtopic = (id: string): SubtopicProgress => ({ id, books: [], testAttempts: [], updatedAt: '' })
 

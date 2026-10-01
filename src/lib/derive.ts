@@ -1,5 +1,8 @@
 import type { CurriculumIndex, Subtopic } from './curriculum'
-import type { ISODate, ItemProgress, SubtopicProgress, TestAttempt } from './db'
+import { addDays, type ISODate } from './dates'
+import type { ItemProgress, SubtopicProgress, TestAttempt } from './db'
+
+export { addDays }
 
 export type Status = 'locked' | 'ready' | 'in_progress' | 'completed' | 'warning'
 
@@ -35,12 +38,6 @@ export interface Derived {
   subtopics: Map<string, SubtopicDerived>
   topics: Map<string, Rollup>
   overall: Rollup
-}
-
-/** Calendar arithmetic on 'YYYY-MM-DD', time-zone free. */
-export function addDays(date: ISODate, n: number): ISODate {
-  const [y, m, d] = date.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
 
 const minOf = (xs: ISODate[]) => (xs.length ? xs.reduce((a, b) => (b < a ? b : a)) : null)
