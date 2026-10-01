@@ -8,6 +8,7 @@ import { EditCourseDialog } from '@/components/course/EditCourseDialog'
 import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
 import { SemesterDialog } from '@/components/layout/SemesterDialog'
 import { NoticeBar } from '@/components/NoticeBar'
+import { SettingsView } from '@/components/settings/SettingsView'
 import { Sidebar } from '@/components/Sidebar'
 import { Tag } from '@/components/Tag'
 import type { Course } from '@/lib/schema/course'
@@ -122,7 +123,7 @@ function Content({ route, course }: { route: Route; course: Course | null | unde
       case 'calendar': return <ComingSoon title="Calendar" phase="3.6">The week, across all courses.</ComingSoon>
       case 'dashboard': return <ComingSoon title="Semester dashboard" phase="7.3">All courses side by side, with exam countdowns.</ComingSoon>
       case 'documents': return <ComingSoon title="Documents" phase="4.1">Every course’s files in one place.</ComingSoon>
-      case 'settings': return <ComingSoon title="Settings" phase="2.1">API key, models, availability and data safety.</ComingSoon>
+      case 'settings': return <SettingsView />
     }
   }
   if (course === undefined) return <div className="grid flex-1 place-items-center text-muted-foreground">Loading…</div>

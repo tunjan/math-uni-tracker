@@ -30,6 +30,27 @@ export interface SettingsRow {
   value: Settings
 }
 
+/** Disposable data fetched from outside (e.g. the OpenRouter models list). Never exported. */
+export interface CacheRow {
+  key: string
+  fetchedAt: string
+  value: unknown
+}
+
+/** A course setup in progress: the uploaded files and the AI's last answer, so nothing is lost if a call fails or the page reloads. */
+export interface SetupDraft {
+  id: string
+  /** null: a new course; otherwise the course being re-run. */
+  courseKey: string | null
+  createdAt: string
+  updatedAt: string
+  files: { id: string; name: string; kind: 'syllabus' | 'past_paper'; blob: Blob; existingDocumentId: string | null }[]
+  /** The last validated proposal, as a course file (course/v1) for a new course, or the raw AI result for a re-run. */
+  proposal: unknown
+  /** The last failure, shown until the next attempt. */
+  failure: { message: string; raw: string | null; problems: string[] } | null
+}
+
 /** Never exported, never logged. */
 export interface SecretRow {
   key: 'openrouterApiKey'
@@ -51,11 +72,13 @@ export type PlannerDb = Dexie & {
   structureVersions: EntityTable<StructureVersion, 'id'>
   settings: EntityTable<SettingsRow, 'key'>
   secrets: EntityTable<SecretRow, 'key'>
+  cache: EntityTable<CacheRow, 'key'>
+  drafts: EntityTable<SetupDraft, 'id'>
 }
 
 export function openPlannerDb(name = DB_NAME): PlannerDb {
   const db = new Dexie(name) as PlannerDb
-  // Gradings arrive with phase 6 as version 2.
+  // Gradings arrive with phase 6 as version 3.
   db.version(1).stores({
     semesters: '&id',
     courses: '&key, semesterId',
@@ -72,6 +95,7 @@ export function openPlannerDb(name = DB_NAME): PlannerDb {
     settings: '&key',
     secrets: '&key',
   })
+  db.version(2).stores({ cache: '&key', drafts: '&id, courseKey' })
   return db
 }
 

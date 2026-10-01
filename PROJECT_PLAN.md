@@ -591,10 +591,10 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **1.6 Planning columns.** *(done)* Est., Exam weight (as % of past papers) and Difficulty columns, with field icons and sorting. Edits are stored as overrides (a blue dot marks them, and "Use AI value" removes them); input is validated. Subtopic and topic rows show the hour totals, with the hours left in the tooltip. The rollups now carry `minutesTotal` and `minutesLeft` for the dashboards and scheduler.
 
 ### Milestone 2: OpenRouter and course setup
-- **2.0 Re-verify the OpenRouter docs** (needs network access to `openrouter.ai`).
-- **2.1 Settings: API key** in `secrets`, "Test key", spending-limit notice.
-- **2.2 Models list + two pickers** (setup: long context with file support; grading: image input), plus a PDF engine choice.
-- **2.3 OpenRouter client.** Structured output, error mapping, one repair retry, call log. Mocked-fetch tests.
+- **2.0 Re-verify the OpenRouter docs.** *(blocked: `openrouter.ai` is denied by this build environment's network policy)*. The client therefore parses every response defensively, and the whole AI flow is rehearsed in the browser against a Playwright mock of OpenRouter. First real use is yours: if anything differs, the error message shows OpenRouter's own words.
+- **2.1 Settings: API key** *(done)* in `secrets` (never exported; never in URLs, bodies or localStorage, which the browser test checks). "Test key" (`GET /key`) shows the spend and warns in red when the key has no spending limit.
+- **2.2 Models list + two pickers** *(done)*: live list cached for a day; searchable pickers filtered by job (setup: JSON schema and ≥ 64k context; grading: also images), with price, context and capability tags; PDF engine choice.
+- **2.3 OpenRouter client** *(done)*: `chat()` with strict JSON Schema plus `provider.require_parameters`, the file-parser plugin and usage/cost; failures classified (no key, bad key, credits, rate limit with Retry-After, missing capability, server, network, timeout, cancelled, truncated, empty), with plain-language explanations; `generateStructured()` validates with Zod and makes exactly one cheap repair call (no files) before giving you the raw answer. Every call, failed or not, is logged with its cost. 14 mocked-fetch tests.
 - **2.4 Course setup wizard.**
   - Upload the guide (and any past papers). Files are **saved as documents first**.
   - Then: cost estimate, call, preview (tree, counts, assessments, sections, **formulas shown readably, with a "try it" calculator**, calibration against ECTS), edits, confirm.
