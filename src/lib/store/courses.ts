@@ -1,7 +1,7 @@
 import { checkCourse } from '../final-grade'
-import { Assessment, Course, Semester } from '../schema/course'
+import { Assessment, Course, Semester, type PastPaper } from '../schema/course'
 import { CourseStructure } from '../schema/structure'
-import { db, nowISO, valid, ValidationError } from './db'
+import { db, nowISO, requireWritable, valid, ValidationError } from './db'
 
 // ---------------------------------------------------------------- semesters
 
@@ -84,13 +84,14 @@ export const setCourseArchived = (key: string, archived: boolean) => updateCours
 /**
  * Replace a course's structure. The previous structure is snapshotted first, so this can be undone.
  * Progress is keyed by ID and is never touched: records whose IDs left the structure become orphans.
+ * Past papers can be replaced in the same write, since their questions must point at items that exist.
  */
-export async function replaceStructure(key: string, structure: CourseStructure, reason: string): Promise<Course> {
+export async function replaceStructure(key: string, structure: CourseStructure, reason: string, pastPapers?: PastPaper[]): Promise<Course> {
   const parsed = valid(CourseStructure, structure, `Structure of ${key}`)
-  return db.transaction('rw', [db.courses, db.assessments, db.structureVersions], async () => {
-    const cur = await db.courses.get(key)
-    if (!cur) throw new ValidationError('Course', [`no course ${key}`])
-    const next = valid(Course, { ...cur, structure: parsed, updatedAt: nowISO() }, `Course ${key}`)
+  return db.transaction('rw', [db.courses, db.semesters, db.assessments, db.structureVersions], async () => {
+    await requireWritable(key, `Course ${key}`)
+    const cur = (await db.courses.get(key))!
+    const next = valid(Course, { ...cur, structure: parsed, pastPapers: pastPapers ?? cur.pastPapers, updatedAt: nowISO() }, `Course ${key}`)
     crossCheck(next, await listAssessments(key))
     await db.structureVersions.add({ id: crypto.randomUUID(), courseKey: key, createdAt: nowISO(), reason: `before: ${reason}`, structure: cur.structure })
     await db.courses.put(next)

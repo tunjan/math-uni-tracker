@@ -1,9 +1,13 @@
 import { parseCourseFile } from '../course-file'
 import type { SetupProposal } from '../ai/setup'
 import type { PastPaper } from '../schema/course'
-import { createCourse, updateCourse } from './courses'
+import { createCourse, getCourse, replaceStructure, updateCourse } from './courses'
 import { db, nowISO, ValidationError, type SetupDraft } from './db'
-import { addDocument } from './documents'
+import { addDocument, listDocuments } from './documents'
+import { applyChanges } from '../structure-diff'
+import { withExamWeights } from '../exam-weight'
+import type { SetupResponse } from '../ai/setup'
+import type { CourseStructure } from '../schema/structure'
 
 export async function newDraft(courseKey: string | null): Promise<SetupDraft> {
   const d: SetupDraft = { id: crypto.randomUUID(), courseKey, createdAt: nowISO(), updatedAt: nowISO(), files: [], proposal: null, failure: null }
@@ -51,4 +55,55 @@ export async function confirmNewCourse(draft: SetupDraft, proposal: SetupProposa
   if (papers.length) await updateCourse(course.key, { pastPapers: papers })
   await deleteDraft(draft.id)
   return course.key
+}
+
+/** A re-run draft for an existing course, preloaded with its syllabus and past-paper documents. */
+export async function startRerun(courseKey: string): Promise<SetupDraft> {
+  const docs = (await listDocuments(courseKey)).filter((d) => d.kind === 'syllabus' || d.kind === 'past_paper')
+  const files = await Promise.all(docs.map(async (d) => ({
+    id: crypto.randomUUID(), name: d.name, kind: d.kind as 'syllabus' | 'past_paper',
+    blob: (await db.blobs.get(d.blobId))!.blob, existingDocumentId: d.id,
+  })))
+  const draft = await newDraft(courseKey)
+  await updateDraft(draft.id, { files })
+  return { ...draft, files }
+}
+
+/** The AI's answer as a structure (exam weights are recomputed on apply). */
+export function responseStructure(r: SetupResponse): CourseStructure {
+  return {
+    version: 2, retiredIds: [],
+    topics: r.topics.map((t) => ({ ...t, subtopics: t.subtopics.map((s) => ({ ...s, items: s.items.map((i) => ({ ...i, examWeight: null })) })) })),
+  }
+}
+
+/**
+ * Apply the accepted changes of a re-run: new files become documents, the past-paper index is merged
+ * (by document), and the new structure and papers are saved together, after a snapshot of the old structure.
+ * Exam weights are recomputed from all indexed papers. Progress is never touched.
+ */
+export async function applyRerun(draft: SetupDraft, r: SetupResponse, accepted: Set<string>): Promise<{ skipped: string[] }> {
+  const key = draft.courseKey!
+  const course = await getCourse(key)
+  if (!course) throw new ValidationError('Course', [`no course ${key}`])
+  const { structure, skipped } = applyChanges(course.structure, responseStructure(r), accepted)
+  const items = new Set(structure.topics.flatMap((t) => t.subtopics.flatMap((s) => s.items.map((i) => i.id))))
+  const byName = new Map<string, string>()
+  for (const f of draft.files) {
+    if (f.existingDocumentId) { byName.set(f.name.toLowerCase(), f.existingDocumentId); continue }
+    const doc = await addDocument({
+      courseKey: key, topicId: null, subtopicId: null, assessmentId: null, kind: f.kind, source: 'class', name: f.name,
+      format: 'pdf', mime: 'application/pdf', linkedIds: [], itemIds: [], year: null,
+    }, f.blob)
+    byName.set(f.name.toLowerCase(), doc.id)
+  }
+  const fresh: PastPaper[] = r.pastPapers.flatMap((p) => {
+    const documentId = byName.get(p.filename.toLowerCase())
+    return documentId ? [{ documentId, year: p.year, label: p.filename, questions: p.questions }] : []
+  })
+  const papers = [...course.pastPapers.filter((p) => !fresh.some((f) => f.documentId === p.documentId)), ...fresh]
+    .map((p) => ({ ...p, questions: p.questions.map((q) => ({ ...q, itemIds: q.itemIds.filter((id) => items.has(id)) })) }))
+  await replaceStructure(key, withExamWeights(structure, papers), 'AI re-run', papers)
+  await deleteDraft(draft.id)
+  return { skipped }
 }

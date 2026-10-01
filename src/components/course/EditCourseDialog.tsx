@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download } from 'lucide-react'
+import { Download, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -13,6 +13,9 @@ import type { Assessment, Course } from '@/lib/schema/course'
 import { listAssessments, updateCourse } from '@/lib/store/courses'
 import { ValidationError } from '@/lib/store/db'
 import { cn } from '@/lib/utils'
+import { startRerun } from '@/lib/store/setup'
+import { navigate } from '@/routes'
+import { reportError } from '@/lib/notify'
 import { Problems } from '../Problems'
 import { Tag } from '../Tag'
 
@@ -129,6 +132,10 @@ function Body({ course, assessments, onDone }: { course: Course; assessments: As
       <Problems problems={problems} />
       <DialogFooter>
         <Button type="button" variant="outline" className="sm:mr-auto" onClick={() => void exportFile()}><Download />Export course file</Button>
+        <Button type="button" variant="outline" disabled={course.archived}
+          onClick={() => void startRerun(course.key).then((d) => { onDone(); navigate({ kind: 'setup', draftId: d.id }) }, reportError)}>
+          <Sparkles />Re-run AI setup
+        </Button>
         <Button type="submit">Save</Button>
       </DialogFooter>
     </form>

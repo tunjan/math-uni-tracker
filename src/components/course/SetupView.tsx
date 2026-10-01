@@ -19,6 +19,7 @@ import { navigate, routeHash } from '@/routes'
 import { Panel } from '../Panel'
 import { Problems } from '../Problems'
 import { ProposalEditor } from './ProposalEditor'
+import { RerunView } from './RerunView'
 
 const isPdf = (f: File) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
 
@@ -31,6 +32,10 @@ export function SetupView({ draftId, semester, courses }: { draftId: string | nu
   const draft = useLiveQuery(async () => (draftId ? ((await db.drafts.get(draftId)) ?? null) : undefined), [draftId])
   if (draft === undefined) return <div className="grid flex-1 place-items-center text-muted-foreground">Loading…</div>
   if (draft === null) return <div className="grid flex-1 place-items-center p-6 text-muted-foreground">This setup was finished or discarded.</div>
+  if (draft.courseKey) {
+    const course = courses.find((c) => c.key === draft.courseKey) ?? null
+    return course ? <RerunView key={draft.id} draft={draft} course={course} /> : <div className="grid flex-1 place-items-center p-6 text-muted-foreground">Open the course’s semester to re-run its setup.</div>
+  }
   if (!semester) return <div className="grid flex-1 place-items-center p-6 text-muted-foreground">Create a semester first.</div>
   return <Setup key={draft.id} draft={draft} semester={semester} courses={courses} />
 }
