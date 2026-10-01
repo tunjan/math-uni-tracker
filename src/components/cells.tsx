@@ -10,6 +10,7 @@ import { dateToISO, isoToDate, todayISO, type ISODate } from '@/lib/dates'
 import type { Confidence } from '@/lib/schema/common'
 import type { Example } from '@/lib/schema/progress'
 import { formatDate } from '@/lib/format'
+import { formatPlanning, parsePlanningInput, type PlanningField } from '@/lib/item-values'
 import { cn } from '@/lib/utils'
 import { Tag } from './Tag'
 import { Tex } from './Tex'
@@ -210,6 +211,60 @@ function ExamplesPopover({ anchor, value, onCommit, onCancel }: { anchor: React.
           <span className="flex-1" />
           <Button size="xs" variant="ghost" onClick={onCancel}>Cancel</Button>
           <Button size="xs" onClick={() => onCommit(clean())}>Save</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+const PLANNING_LABEL: Record<PlanningField, string> = { estMinutes: 'Estimated minutes', examWeight: 'Exam weight (% of past papers)', difficulty: 'Difficulty (1–5)' }
+
+/**
+ * Est., exam weight and difficulty. Shows your value where you set one (with a dot), else the AI's.
+ * Saving a blank, or "Use AI value", removes your override.
+ */
+export function PlanningCell({ field, value, aiValue, edited, editing, onCommit, onCancel }: EditProps<number | undefined> & {
+  field: PlanningField
+  value: number | null
+  aiValue: number | null
+  edited: boolean
+}) {
+  const anchor = useRef<HTMLDivElement>(null)
+  return (
+    <div ref={anchor} className="flex h-full w-full items-center gap-1.5 tabular-nums">
+      {edited && <span className="size-1.5 shrink-0 rounded-full bg-primary" title={`Your value. AI estimate: ${formatPlanning(field, aiValue) || 'none'}`} />}
+      <span className={cn('truncate', value == null && 'text-muted-foreground')}>{value == null ? '–' : formatPlanning(field, value)}</span>
+      {editing && <PlanningPopover anchor={anchor} field={field} value={value} aiValue={aiValue} edited={edited} onCommit={onCommit} onCancel={onCancel} />}
+    </div>
+  )
+}
+
+function PlanningPopover({ anchor, field, value, aiValue, edited, onCommit, onCancel }: {
+  anchor: React.RefObject<HTMLDivElement | null>
+  field: PlanningField
+  value: number | null
+  aiValue: number | null
+  edited: boolean
+  onCommit: (v: number | undefined) => void
+  onCancel: () => void
+}) {
+  const shown = value == null ? '' : field === 'examWeight' ? String(Math.round(value * 100)) : String(value)
+  const [draft, setDraft] = useState(shown)
+  const parsed = parsePlanningInput(field, draft)
+  const commit = () => parsed.ok && onCommit(parsed.value)
+  return (
+    <Popover open onOpenChange={(open, d) => !open && (closeCommits(d) && draft !== shown ? commit() : onCancel())}>
+      <PopoverContent anchor={anchor} align="start" className="w-64" finalFocus={false}>
+        <label className="grid gap-1">
+          <span className="text-xs text-muted-foreground">{PLANNING_LABEL[field]}</span>
+          <Input autoFocus value={draft} inputMode="decimal" aria-invalid={!parsed.ok}
+            onChange={(e) => setDraft(e.target.value)} onFocus={(e) => e.currentTarget.select()}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit() } }} className="h-7 text-[13px] tabular-nums" />
+        </label>
+        {!parsed.ok && <span className="text-xs text-destructive">{parsed.error}</span>}
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>AI: {formatPlanning(field, aiValue) || 'none'}</span>
+          <Button size="xs" variant="ghost" disabled={!edited} onClick={() => onCommit(undefined)}>Use AI value</Button>
         </div>
       </PopoverContent>
     </Popover>

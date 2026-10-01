@@ -1,5 +1,6 @@
 import type { CourseIndex } from './course-index'
 import { addDays, type ISODate } from './dates'
+import { itemValues } from './item-values'
 import type { ItemProgress, SubtopicProgress, TestAttempt } from './schema/progress'
 import type { StructureSubtopic } from './schema/structure'
 
@@ -20,6 +21,9 @@ export interface Rollup {
   /** Internal accumulators for meanConfidence. */
   ratedCount: number
   ratedSum: number
+  /** Estimated minutes (your overrides, else the AI's): all items, and items not yet finished. */
+  minutesTotal: number
+  minutesLeft: number
 }
 
 export interface SubtopicDerived {
@@ -45,7 +49,7 @@ const minOf = (xs: ISODate[]) => (xs.length ? xs.reduce((a, b) => (b < a ? b : a
 const maxOf = (xs: ISODate[]) => (xs.length ? xs.reduce((a, b) => (b > a ? b : a)) : null)
 
 const emptyRollup = (): Rollup => ({
-  itemsFinished: 0, itemsTotal: 0, subtopicsCompleted: 0, subtopicsTotal: 0, meanConfidence: null, ratedCount: 0, ratedSum: 0,
+  itemsFinished: 0, itemsTotal: 0, subtopicsCompleted: 0, subtopicsTotal: 0, meanConfidence: null, ratedCount: 0, ratedSum: 0, minutesTotal: 0, minutesLeft: 0,
 })
 
 function addInto(into: Rollup, r: Rollup) {
@@ -55,6 +59,8 @@ function addInto(into: Rollup, r: Rollup) {
   into.subtopicsTotal += r.subtopicsTotal
   into.ratedCount += r.ratedCount
   into.ratedSum += r.ratedSum
+  into.minutesTotal += r.minutesTotal
+  into.minutesLeft += r.minutesLeft
   into.meanConfidence = into.ratedCount ? into.ratedSum / into.ratedCount : null
 }
 
@@ -87,6 +93,8 @@ export function deriveOwn(subtopic: StructureSubtopic, items: Map<string, ItemPr
     ratedCount: ratings.length,
     ratedSum,
     meanConfidence: ratings.length ? ratedSum / ratings.length : null,
+    minutesTotal: subtopic.items.reduce((m, it, k) => m + itemValues(it, progress[k]).estMinutes, 0),
+    minutesLeft: subtopic.items.reduce((m, it, k) => m + (progress[k]?.dateFinished ? 0 : itemValues(it, progress[k]).estMinutes), 0),
   }
 
   return {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createColumnHelper, getCoreRowModel, getExpandedRowModel, useReactTable, type ExpandedState } from '@tanstack/react-table'
-import { Calendar, CalendarCheck, CircleChevronDown, ClipboardCheck, Hash, Link2, ListChecks, Percent, RotateCcw, Star, Type, type LucideIcon } from 'lucide-react'
+import { Calendar, CalendarCheck, ChartColumn, CircleChevronDown, ClipboardCheck, Gauge, Hash, Link2, ListChecks, Percent, RotateCcw, Star, Timer, Type, type LucideIcon } from 'lucide-react'
 import type { ItemKind } from '@/lib/schema/structure'
 import type { GridRow } from '@/lib/view'
 
@@ -15,6 +15,9 @@ const columns = [
   col.display({ id: 'dateStarted', header: 'Started', size: 120, ...meta(Calendar) }),
   col.display({ id: 'dateFinished', header: 'Finished', size: 120, ...meta(CalendarCheck) }),
   col.display({ id: 'confidence', header: 'Confidence', size: 128, ...meta(Star) }),
+  col.display({ id: 'estMinutes', header: 'Est.', size: 104, ...meta(Timer) }),
+  col.display({ id: 'examWeight', header: 'Exam weight', size: 124, ...meta(ChartColumn) }),
+  col.display({ id: 'difficulty', header: 'Difficulty', size: 112, ...meta(Gauge) }),
   col.display({ id: 'notes', header: 'Notes', size: 300, ...meta(Type) }),
   col.display({ id: 'examples', header: 'Examples', size: 200, ...meta(ListChecks) }),
   col.display({ id: 'itemsDone', header: 'Items done', size: 150, ...meta(Percent) }),
@@ -24,7 +27,7 @@ const columns = [
   col.accessor('prerequisites', { header: 'Prerequisites', size: 260, ...meta(Link2) }),
 ]
 export const FROZEN = 2
-const POPOVER_COLS = new Set(['dateStarted', 'dateFinished', 'notes', 'examples'])
+const POPOVER_COLS = new Set(['dateStarted', 'dateFinished', 'notes', 'examples', 'estMinutes', 'examWeight', 'difficulty'])
 
 export const KIND_LABEL: Record<ItemKind, string> = {
   definition: 'Definition',

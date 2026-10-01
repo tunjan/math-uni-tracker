@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { CourseIndex } from './course-index'
 import type { ItemProgress } from './schema/progress'
-import type { ItemKind } from './schema/structure'
+import type { ItemKind, StructureItem } from './schema/structure'
+import { itemValues } from './item-values'
 import type { Derived, Status } from './derive'
 import { topicHue, type Hue } from './palette'
 import { texPlain } from './tex'
@@ -11,6 +12,8 @@ export interface GridRow {
   id: string
   title: string
   kind?: ItemKind
+  /** Items: the structure's (AI) planning values; overrides live in progress. */
+  ai?: Pick<StructureItem, 'estMinutes' | 'examWeight' | 'difficulty'>
   hue?: Hue
   prerequisites?: { id: string; hue: Hue }[]
   subRows?: GridRow[]
@@ -29,7 +32,7 @@ export function buildRows(index: CourseIndex, topicId: string | null): GridRow[]
         id: s.id,
         title: s.title,
         prerequisites: s.prerequisites.map((p) => ({ id: p, hue: topicHue(index, p.slice(0, 2)) })),
-        subRows: s.items.map((i) => ({ type: 'item', id: i.id, title: i.title, kind: i.kind })),
+        subRows: s.items.map((i) => ({ type: 'item', id: i.id, title: i.title, kind: i.kind, ai: { estMinutes: i.estMinutes, examWeight: i.examWeight, difficulty: i.difficulty } })),
       })),
     }))
 }
@@ -42,6 +45,9 @@ export const SORT_KEYS = {
   dateStarted: 'Started',
   dateFinished: 'Finished',
   confidence: 'Confidence',
+  estMinutes: 'Est.',
+  examWeight: 'Exam weight',
+  difficulty: 'Difficulty',
   itemsDone: 'Items done',
   tests: 'Best test',
 } as const
@@ -118,6 +124,9 @@ function sortValue(r: GridRow, key: SortKey, { progress, derived }: Ctx): string
       if (r.type === 'item') return p?.dateFinished ? 1 : 0
       return rollup && rollup.itemsTotal ? rollup.itemsFinished / rollup.itemsTotal : null
     case 'tests': return s?.bestScore ?? null
+    case 'estMinutes': return r.ai ? itemValues(r.ai, p).estMinutes : (rollup?.minutesTotal ?? null)
+    case 'examWeight': return r.ai ? itemValues(r.ai, p).examWeight : null
+    case 'difficulty': return r.ai ? itemValues(r.ai, p).difficulty : null
   }
 }
 

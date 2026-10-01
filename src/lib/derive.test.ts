@@ -180,6 +180,16 @@ describe('derived dates and rollups', () => {
   })
 })
 
+describe('estimated minutes', () => {
+  it('rollups sum the effective estimates (overrides win) and what is left unfinished', () => {
+    const d = setup({ 'GR.01.1': { dateStarted: '2026-01-01', dateFinished: '2026-01-02' } }, {})
+    expect([d.subtopics.get('GR.01')!.rollup.minutesTotal, d.subtopics.get('GR.01')!.rollup.minutesLeft]).toEqual([60, 30])
+    const withOverride = deriveAll(index, new Map([['GR.02.1', { ...emptyItem('GR.02.1'), overrides: { estMinutes: 90 } }]]), new Map())
+    expect(withOverride.topics.get('GR')!.minutesTotal).toBe(30 * 3 + 90)
+    expect(withOverride.overall.minutesLeft).toBe(30 * 5 + 90)
+  })
+})
+
 describe('orphans', () => {
   it('lists records whose ids are not in the curriculum, and nothing else', () => {
     const orphans = findOrphans(

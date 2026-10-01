@@ -12,7 +12,8 @@ import { formatDate, pct } from '@/lib/format'
 import { KIND_HUE } from '@/lib/palette'
 import { texPlain } from '@/lib/tex'
 import { cn } from '@/lib/utils'
-import { DateCell, ExamplesCell, NotesCell, StarsCell } from './cells'
+import { DateCell, ExamplesCell, NotesCell, PlanningCell, StarsCell } from './cells'
+import { formatPlanning, itemValues } from '@/lib/item-values'
 import { FROZEN, KIND_LABEL, opensEditor, type GridTable } from './grid-model'
 import { StatusPill } from './StatusPill'
 import { Tag } from './Tag'
@@ -303,6 +304,21 @@ function renderCell(columnId: string, row: Row<GridRow>, ctx: CellCtx, editing: 
         onCommit={(v) => save({ dateFinished: v })} onCancel={ctx.stopEditing} />
     case 'confidence':
       return <StarsCell value={p.confidence} disabled={ctx.readOnly} onSet={(v) => ctx.saveItem(r.id, { confidence: v })} />
+    case 'estMinutes':
+    case 'examWeight':
+    case 'difficulty': {
+      const field = columnId
+      const v = itemValues(r.ai!, p)
+      // Overrides are merged into the existing ones; undefined removes this field's override.
+      const setOverride = (value: number | undefined) => {
+        const overrides = { ...p.overrides }
+        if (value === undefined) delete overrides[field]
+        else overrides[field] = value
+        save({ overrides })
+      }
+      return <PlanningCell field={field} value={v[field]} aiValue={r.ai![field]} edited={v.edited[field]} editing={editing}
+        onCommit={setOverride} onCancel={ctx.stopEditing} />
+    }
     case 'notes':
       return <NotesCell value={p.notes} editing={editing} onCommit={(v) => save({ notes: v })} onCancel={ctx.stopEditing} />
     case 'examples':
@@ -355,6 +371,12 @@ function renderRollupCell(columnId: string, r: GridRow, derived: Derived) {
         <span className={muted}>
           <span className={cn('font-medium', s.bestScore! >= 4 ? 'text-foreground' : '')}>{s.bestScore}/5</span>
           {' '}in {s.attempts} {s.attempts === 1 ? 'try' : 'tries'}
+        </span>
+      ) : null
+    case 'estMinutes':
+      return rollup.minutesTotal ? (
+        <span className={muted} title={`${formatPlanning('estMinutes', rollup.minutesLeft)} left of ${formatPlanning('estMinutes', rollup.minutesTotal)}`}>
+          {formatPlanning('estMinutes', rollup.minutesTotal)}
         </span>
       ) : null
     case 'retest':
