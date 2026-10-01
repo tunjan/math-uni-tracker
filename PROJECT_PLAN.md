@@ -585,8 +585,8 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
   - `src/lib/store/*`: the `course-planner` DB and validated write helpers. Every write is Zod-checked and cross-checked against its course, and nothing is written when a check fails.
   - Helpers: semesters, courses + assessments (created together), structure replacement with snapshots, progress, append-only reviews, documents + blobs, settings.
   - 20 `fake-indexeddb` tests. No UI.
-- **1.3 Semester and course management + structure JSON import.** Create "2026/27 Semestre 1" and courses by hand; an invalid import saves nothing.
-- **1.4 App shell, router, sidebar.** Semester switcher, courses with progress, nav entries (placeholders), course tabs, mobile nav.
+- **1.3 App shell, router, sidebar.** *(done)* Hash routes (`src/routes.ts`, tested); semester switcher with a create/edit/archive/delete-if-empty dialog; courses with progress bars; Today, Calendar, Dashboard, Documents and Settings entries (placeholders naming their phase); course tabs; mobile drawer. The old curriculum grid is no longer mounted (it returns per course in 1.5). *Swapped with the old 1.4: course management needs the shell to live in.*
+- **1.4 Course files: import, export, edit.** A course file (`course/v1`) holds a course, its structure and its assessments in one JSON, validated as a whole; an invalid file saves nothing. Ready-made files for ALI, LMCN and MD (`docs/courses/`), written from the guides, until AI setup (phase 2) can generate them. A small dialog edits a course's details and archives it. *Changed from "create courses by hand": a course needs a structure and assessments, which only a file or AI setup can supply.*
 - **1.5 Grid, side sheet and dashboard on course data.** Qualified IDs, per-course prefs and orphans, documents in the sheet. `curriculum.json` is removed from runtime.
 - **1.6 Planning columns.** Est., exam weight and difficulty, with override editing and hour rollups.
 

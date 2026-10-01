@@ -1,110 +1,70 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Menu, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
-import { Grid, useGrid } from '@/components/Grid'
-import { buildRows, isFiltering, ROW_HEIGHT, shapeRows, usePrefs } from '@/lib/view'
-import { Dashboard } from '@/components/Dashboard'
-import { Toolbar } from '@/components/Toolbar'
+import { ComingSoon } from '@/components/ComingSoon'
+import { CourseTabs } from '@/components/layout/CourseTabs'
+import { SemesterDialog } from '@/components/layout/SemesterDialog'
 import { Sidebar } from '@/components/Sidebar'
-import { useLiveQuery } from 'dexie-react-hooks'
-import { loadCurriculum, type CurriculumIndex, type LoadResult } from '@/lib/curriculum'
-import { db, requestPersistence, type ItemProgress, type SubtopicProgress } from '@/lib/db'
-import { deriveAll, findOrphans } from '@/lib/derive'
-import { OrphanPanel } from '@/components/Notices'
-import { SubtopicSheet } from '@/components/SubtopicSheet'
+import { Tag } from '@/components/Tag'
+import { requestPersistence } from '@/lib/db'
+import { useCourse, useCourseProgress, useCourses, useCurrentSemester, useSemesters } from '@/lib/store/hooks'
 import { useTheme } from '@/lib/theme'
+import { navigate, useRoute, type GlobalView, type Route } from '@/routes'
+
+const GLOBAL_TITLES: Record<GlobalView, string> = {
+  today: 'Today',
+  calendar: 'Calendar',
+  dashboard: 'Dashboard',
+  documents: 'Documents',
+  settings: 'Settings',
+}
 
 export default function App() {
-  const [result, setResult] = useState<LoadResult | null>(null)
-  useEffect(() => {
-    void loadCurriculum().then(setResult)
-    requestPersistence()
-  }, [])
-  if (!result) return <div className="grid h-dvh place-items-center text-sm text-muted-foreground">Loading curriculum…</div>
-  if (!result.ok) return <CurriculumErrors errors={result.errors} />
-  return <Shell index={result.index} />
-}
-
-function CurriculumErrors({ errors }: { errors: string[] }) {
-  return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-lg font-semibold">curriculum.json has errors</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Fix these in <code>public/curriculum.json</code> and reload. Your progress is untouched.
-      </p>
-      <ul className="mt-4 space-y-1 rounded-lg border border-border bg-muted p-4 text-sm">
-        {errors.map((e) => (
-          <li key={e} className="break-words">{e}</li>
-        ))}
-      </ul>
-    </main>
-  )
-}
-
-function useHashView() {
-  const read = () => (location.hash === '#/dashboard' ? 'dashboard' : 'grid')
-  const [view, setView] = useState<'grid' | 'dashboard'>(read)
-  useEffect(() => {
-    const on = () => setView(read())
-    window.addEventListener('hashchange', on)
-    return () => window.removeEventListener('hashchange', on)
-  }, [])
-  const go = (v: 'grid' | 'dashboard') => {
-    location.hash = v === 'dashboard' ? '#/dashboard' : '#/'
-  }
-  return [view, go] as const
-}
-
-function Shell({ index }: { index: CurriculumIndex }) {
+  useEffect(requestPersistence, [])
   const { theme, toggle } = useTheme()
-  const [view, go] = useHashView()
-  const [prefs, setPrefs] = usePrefs()
-  const [search, setSearch] = useState('')
-  const deferredSearch = useDeferredValue(search)
+  const route = useRoute()
   const [navOpen, setNavOpen] = useState(false)
-  const [sheetId, setSheetId] = useState<string | null>(null)
+  const [semesterDialog, setSemesterDialog] = useState<'new' | 'edit' | null>(null)
 
-  const itemRows = useLiveQuery(() => db.items.toArray(), [])
-  const subRows = useLiveQuery(() => db.subtopics.toArray(), [])
-  const pdfOwners = useLiveQuery(() => db.pdfs.orderBy('subtopicId').keys() as Promise<string[]>, [])
-  const progress = useMemo(() => new Map<string, ItemProgress>((itemRows ?? []).map((p) => [p.id, p])), [itemRows])
-  const subtopicProgress = useMemo(() => new Map<string, SubtopicProgress>((subRows ?? []).map((s) => [s.id, s])), [subRows])
-  const derived = useMemo(() => deriveAll(index, progress, subtopicProgress), [index, progress, subtopicProgress])
-  const orphans = useMemo(() => findOrphans(index, itemRows ?? [], subRows ?? [], pdfOwners ?? []), [index, itemRows, subRows, pdfOwners])
+  const semesters = useSemesters()
+  const routeCourse = useCourse(route.kind === 'course' ? route.key : null)
+  const [semester, chooseSemester] = useCurrentSemester(semesters, routeCourse?.semesterId ?? null)
+  const courses = useCourses(semester?.id ?? null)
+  const progress = useCourseProgress(courses)
 
-  const query = { search: deferredSearch, statuses: prefs.statuses, kinds: prefs.kinds, sort: prefs.sort }
-  const filtering = isFiltering(query)
-  const data = useMemo(
-    () => shapeRows(buildRows(index, prefs.topicId), { search: deferredSearch, statuses: prefs.statuses, kinds: prefs.kinds, sort: prefs.sort }, { progress, derived }),
-    [index, prefs.topicId, deferredSearch, prefs.statuses, prefs.kinds, prefs.sort, progress, derived],
+  if (semesters === undefined) return <div className="grid h-dvh place-items-center text-muted-foreground">Loading…</div>
+
+  const pickSemester = (id: string) => {
+    chooseSemester(id)
+    if (routeCourse && routeCourse.semesterId !== id) navigate({ kind: 'global', view: 'today' })
+  }
+  const sidebar = (
+    <Sidebar semesters={semesters} semester={semester} onChooseSemester={pickSemester}
+      onNewSemester={() => setSemesterDialog('new')} onEditSemester={() => setSemesterDialog('edit')}
+      courses={courses ?? []} progress={progress} route={route} onNavigate={() => setNavOpen(false)}
+      onImportCourse={() => undefined} />
   )
-  const table = useGrid(data, { hidden: prefs.hidden, expandAll: filtering })
 
-  const selectTopic = (id: string | null) => {
-    setPrefs({ topicId: id })
-    setNavOpen(false)
-    go('grid')
-  }
-  const openDashboard = () => {
-    setNavOpen(false)
-    go('dashboard')
-  }
-  const title = view === 'dashboard' ? 'Dashboard' : prefs.topicId ? index.topics.get(prefs.topicId)?.title : 'All topics'
-  const sidebar = <Sidebar index={index} derived={derived} topicId={prefs.topicId} view={view} onSelect={selectTopic} onDashboard={openDashboard} />
+  const title: ReactNode = route.kind === 'global' ? GLOBAL_TITLES[route.view] : routeCourse ? (
+    <span className="flex min-w-0 items-center gap-2">
+      <Tag hue={routeCourse.hue} link className="font-semibold">{routeCourse.key}</Tag>
+      <span className="truncate">{routeCourse.title}</span>
+    </span>
+  ) : route.key
 
   return (
     <div className="flex h-dvh overflow-hidden">
       <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar md:block">{sidebar}</aside>
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetContent side="left" className="w-72 bg-sidebar p-0">
-          <SheetTitle className="sr-only">Topics</SheetTitle>
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
           {sidebar}
         </SheetContent>
       </Sheet>
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-12 shrink-0 items-center gap-1 border-b border-border px-2 sm:px-3">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setNavOpen(true)} aria-label="Open topics">
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setNavOpen(true)} aria-label="Open navigation">
             <Menu />
           </Button>
           <h1 className="min-w-0 flex-1 truncate text-[15px] font-semibold">{title}</h1>
@@ -112,29 +72,51 @@ function Shell({ index }: { index: CurriculumIndex }) {
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
         </header>
-        <OrphanPanel orphans={orphans} />
-        {view === 'dashboard' ? (
-          <Dashboard index={index} derived={derived} subtopicProgress={subtopicProgress} onOpenSubtopic={setSheetId} onSelectTopic={selectTopic} />
+        {semesters.length === 0 ? (
+          <Welcome onCreate={() => setSemesterDialog('new')} />
         ) : (
-          <>
-            <Toolbar index={index} prefs={prefs} setPrefs={setPrefs} search={search} setSearch={setSearch}
-              onExpandAll={(v) => table.toggleAllRowsExpanded(v)} filtering={filtering} />
-            {data.length === 0 ? (
-              <div className="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
-                <div>
-                  <p>No rows match {search ? `"${search}"` : 'these filters'}.</p>
-                  <Button variant="link" onClick={() => { setSearch(''); setPrefs({ statuses: [], kinds: [] }) }}>Clear search and filters</Button>
-                </div>
-              </div>
-            ) : (
-              <Grid table={table} rowHeight={ROW_HEIGHT[prefs.rowHeight]} progress={progress} derived={derived} onOpenSubtopic={setSheetId}
-                sort={prefs.sort} onSort={(sort) => setPrefs({ sort })} />
-            )}
-          </>
+          <Content route={route} courseFound={routeCourse !== null} />
         )}
-        <SubtopicSheet subtopicId={sheetId} onClose={() => setSheetId(null)} index={index} derived={derived}
-          progress={progress} subtopicProgress={subtopicProgress} />
       </main>
+      <SemesterDialog open={semesterDialog !== null} onOpenChange={(o) => !o && setSemesterDialog(null)}
+        semester={semesterDialog === 'edit' ? semester : null} onSaved={(s) => s && pickSemester(s.id)} />
     </div>
+  )
+}
+
+function Welcome({ onCreate }: { onCreate: () => void }) {
+  return (
+    <div className="grid flex-1 place-items-center p-6">
+      <div className="max-w-sm text-center">
+        <h2 className="text-lg font-semibold">Start with a semester</h2>
+        <p className="mt-1 text-muted-foreground">
+          Semesters hold your courses. Old semesters are archived, never deleted. Everything stays in this browser.
+        </p>
+        <Button className="mt-4" onClick={onCreate}>New semester</Button>
+      </div>
+    </div>
+  )
+}
+
+function Content({ route, courseFound }: { route: Route; courseFound: boolean }) {
+  if (route.kind === 'global') {
+    switch (route.view) {
+      case 'today': return <ComingSoon title="Today" phase="3.5">Your checklist of today’s study sessions.</ComingSoon>
+      case 'calendar': return <ComingSoon title="Calendar" phase="3.6">The week, across all courses.</ComingSoon>
+      case 'dashboard': return <ComingSoon title="Semester dashboard" phase="7.3">All courses side by side, with exam countdowns.</ComingSoon>
+      case 'documents': return <ComingSoon title="Documents" phase="4.1">Every course’s files in one place.</ComingSoon>
+      case 'settings': return <ComingSoon title="Settings" phase="2.1">API key, models, availability and data safety.</ComingSoon>
+    }
+  }
+  if (!courseFound) return <ComingSoon title={`No course ${route.key}`} phase="1.4">Import a course file from the sidebar.</ComingSoon>
+  return (
+    <>
+      <CourseTabs courseKey={route.key} tab={route.tab} />
+      {route.tab === 'grid' && <ComingSoon title="Grid" phase="1.5" />}
+      {route.tab === 'plan' && <ComingSoon title="Plan" phase="3.7">The course timeline and whether the plan fits.</ComingSoon>}
+      {route.tab === 'docs' && <ComingSoon title="Documents" phase="4.1" />}
+      {route.tab === 'exams' && <ComingSoon title="Exams" phase="3.1">Assessments, sections and grade formulas.</ComingSoon>}
+      {route.tab === 'dash' && <ComingSoon title="Course dashboard" phase="1.5" />}
+    </>
   )
 }
