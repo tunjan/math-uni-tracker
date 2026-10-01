@@ -2,7 +2,7 @@ import { useDeferredValue, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ComingSoon } from '@/components/ComingSoon'
+import { DocumentsView } from '@/components/documents/DocumentsView'
 import { Dashboard } from '@/components/Dashboard'
 import { Grid, type SaveItem } from '@/components/Grid'
 import { useGrid } from '@/components/grid-model'
@@ -96,7 +96,7 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
           onSelectTopic={(id) => { setPrefs({ topicId: id }); navigate({ kind: 'course', key: course.key, tab: 'grid' }) }} />
       )}
       {tab === 'plan' && <PlanTab course={course} />}
-      {tab === 'docs' && <ComingSoon title="Documents" phase="4.1">Every document of this course, with filters. For now, documents live in each subtopic’s side sheet.</ComingSoon>}
+      {tab === 'docs' && <DocumentsView courseKey={course.key} />}
       {tab === 'exams' && <ExamsView course={course} readOnly={readOnly} />}
       <SubtopicSheet subtopicId={sheetId} onClose={() => setSheetId(null)} courseKey={course.key} readOnly={readOnly}
         index={index} derived={derived} progress={progress} subtopicProgress={subtopicProgress} />

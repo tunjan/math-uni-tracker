@@ -1,16 +1,6 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { BookOpen, ClipboardCheck, ExternalLink, FileText, ListTree, Plus, Trash2, Upload } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { BookOpen, ClipboardCheck, ExternalLink, FileText, ListTree, Pencil, Plus, Upload } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
@@ -20,18 +10,20 @@ import type { CourseIndex } from '@/lib/course-index'
 import { dateToISO, isoToDate, todayISO, type ISODate } from '@/lib/dates'
 import { qualify } from '@/lib/ids'
 import { reportError } from '@/lib/notify'
-import { openDocument } from '@/lib/open-document'
 import { emptyItemProgress as emptyItem } from '@/lib/progress-rules'
 import type { Confidence } from '@/lib/schema/common'
 import type { Book, ItemProgress, SubtopicProgress, TestAttempt } from '@/lib/schema/progress'
 import { db } from '@/lib/store/db'
-import { addDocument, deleteDocument } from '@/lib/store/documents'
+import { deleteDocument } from '@/lib/store/documents'
 import { updateItem, updateSubtopic } from '@/lib/store/progress'
 import { PASS_SCORE, type Derived } from '@/lib/derive'
 import { formatDate, pct } from '@/lib/format'
 import { KIND_HUE, topicHue } from '@/lib/palette'
 import { cn } from '@/lib/utils'
 import { StarsCell } from './cells'
+import { DocumentDialog, type DocDialogMode } from './documents/DocumentDialog'
+import { formatSize, KIND_TAG, openDoc, SOURCE_LABEL } from './documents/doc-meta'
+import { ConfirmDelete, DeleteButton } from './documents/shared'
 import { StatusPill } from './StatusPill'
 import { Tag } from './Tag'
 import { Tex } from './Tex'
@@ -135,33 +127,6 @@ function Section({ icon: Icon, title, count, action, children }: { icon: typeof 
   )
 }
 
-function ConfirmDelete({ what, detail, onConfirm, children }: { what: string; detail: string; onConfirm: () => void; children: (open: () => void) => ReactNode }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <>
-      {children(() => setOpen(true))}
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {what}?</AlertDialogTitle>
-            <AlertDialogDescription>{detail} This can't be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => { onConfirm(); setOpen(false) }}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  )
-}
-
-const DeleteButton = ({ label, onClick }: { label: string; onClick: () => void }) => (
-  <Button size="icon-sm" variant="ghost" aria-label={label} onClick={onClick} className="shrink-0 text-muted-foreground hover:text-destructive">
-    <Trash2 />
-  </Button>
-)
-
 /** Text input that saves on blur (Enter blurs). Escape reverts. */
 function SaveOnBlur({ value, onSave, ...props }: { value: string; onSave: (v: string) => void } & Omit<React.ComponentProps<'input'>, 'value' | 'onBlur'>) {
   return (
@@ -210,65 +175,44 @@ function Books({ id, books }: { id: string; books: Book[] }) {
   )
 }
 
-const formatSize = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
 
-const isPdf = (f: File) => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
-
-const KIND_TAG = { syllabus: ['Syllabus', 'gray'], past_paper: ['Past paper', 'red'], mark_scheme: ['Mark scheme', 'orange'], lecture_notes: ['Notes', 'blue'],
-  problem_set: ['Problem set', 'purple'], solutions: ['Solutions', 'teal'], my_working: ['My working', 'yellow'], ai_feedback: ['AI feedback', 'pink'] } as const
-const SOURCE_LABEL = { class: 'From class', ai: 'AI-generated', me: 'Mine' } as const
-
-/** This subtopic's documents. Full upload with kind, source and links arrives with the documents library (phase 4). */
+/** This subtopic's documents. Adding opens the library's upload dialog, filed here by default. */
 function Documents({ courseKey, topicId, subtopicId, readOnly }: { courseKey: string; topicId: string; subtopicId: string; readOnly: boolean }) {
   // Metadata only: the bytes are read when a document is opened.
   const docs = useLiveQuery(async () => (await db.documents.where('subtopicId').equals(subtopicId).toArray()).sort((a, b) => a.addedAt.localeCompare(b.addedAt)), [subtopicId])
-  const input = useRef<HTMLInputElement>(null)
-  const [rejected, setRejected] = useState<string[]>([])
-  const onFiles = (files: FileList | null) => {
-    const all = [...(files ?? [])]
-    setRejected(all.filter((f) => !isPdf(f)).map((f) => f.name))
-    for (const f of all.filter(isPdf)) {
-      void addDocument({
-        courseKey, topicId, subtopicId, assessmentId: null, kind: 'lecture_notes', source: 'class', name: f.name,
-        format: 'pdf', mime: 'application/pdf', linkedIds: [], itemIds: [], year: null,
-      }, f).catch(reportError)
-    }
-    if (input.current) input.current.value = ''
-  }
+  const [dialog, setDialog] = useState<DocDialogMode | null>(null)
   return (
     <Section icon={FileText} title="Documents" count={docs?.length}
-      action={!readOnly && (
-        <>
-          <input ref={input} type="file" accept="application/pdf,.pdf" multiple hidden onChange={(e) => onFiles(e.target.files)} />
-          <Button size="xs" variant="outline" onClick={() => input.current?.click()}><Upload />Add PDF</Button>
-        </>
-      )}>
-      {rejected.length > 0 && <p className="text-xs text-destructive">Only PDF files can be added here. Skipped: {rejected.join(', ')}</p>}
+      action={!readOnly && <Button size="xs" variant="outline" onClick={() => setDialog({ kind: 'new', defaults: { courseKey, topicId, subtopicId } })}><Upload />Add</Button>}>
       {!docs?.length ? (
-        <Empty>No documents yet. Add notes or problem sets as PDFs; they are stored in this browser and included in full exports.</Empty>
+        <Empty>No documents yet. Add notes or problem sets (PDFs, photos or Markdown); they are stored in this browser and included in full exports.</Empty>
       ) : (
         <ul className="divide-y divide-grid-line rounded-md border border-border">
           {docs.map((f) => (
             <li key={f.id} className="flex items-center gap-2 py-1 pr-1 pl-2">
               <FileText className="size-4 shrink-0 text-muted-foreground" />
-              <button type="button" onClick={() => void openDocument(f.id)} className="min-w-0 flex-1 truncate text-left hover:underline" title={`Open ${f.name} in a new tab`}>
+              <button type="button" onClick={() => openDoc(f)} className="min-w-0 flex-1 truncate text-left hover:underline" title={`Open ${f.name}`}>
                 {f.name}
               </button>
               <Tag hue={KIND_TAG[f.kind][1]} className="hidden sm:inline-flex">{KIND_TAG[f.kind][0]}</Tag>
               <span className="hidden shrink-0 text-xs text-muted-foreground md:inline">{SOURCE_LABEL[f.source]}</span>
               <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{formatSize(f.size)}</span>
-              <Button size="icon-sm" variant="ghost" aria-label={`Open ${f.name}`} onClick={() => void openDocument(f.id)} className="shrink-0 text-muted-foreground">
+              <Button size="icon-sm" variant="ghost" aria-label={`Open ${f.name}`} onClick={() => openDoc(f)} className="shrink-0 text-muted-foreground">
                 <ExternalLink />
               </Button>
               {!readOnly && (
-                <ConfirmDelete what="this document" detail={`"${f.name}" (${formatSize(f.size)}) will be deleted from this browser.`} onConfirm={() => void deleteDocument(f.id).catch(reportError)}>
-                  {(open) => <DeleteButton label={`Delete ${f.name}`} onClick={open} />}
-                </ConfirmDelete>
+                <>
+                  <Button size="icon-sm" variant="ghost" aria-label={`Edit details of ${f.name}`} onClick={() => setDialog({ kind: 'edit', doc: f })} className="shrink-0 text-muted-foreground"><Pencil /></Button>
+                  <ConfirmDelete what="this document" detail={`"${f.name}" (${formatSize(f.size)}) will be deleted from this browser.`} onConfirm={() => void deleteDocument(f.id).catch(reportError)}>
+                    {(open) => <DeleteButton label={`Delete ${f.name}`} onClick={open} />}
+                  </ConfirmDelete>
+                </>
               )}
             </li>
           ))}
         </ul>
       )}
+      <DocumentDialog mode={dialog} onClose={() => setDialog(null)} />
     </Section>
   )
 }

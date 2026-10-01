@@ -3,6 +3,8 @@ import { Menu, Moon, Pencil, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ComingSoon } from '@/components/ComingSoon'
+import { DocView } from '@/components/documents/DocView'
+import { DocumentsView } from '@/components/documents/DocumentsView'
 import { CourseView } from '@/components/course/CourseView'
 import { EditCourseDialog } from '@/components/course/EditCourseDialog'
 import { ImportCourseDialog } from '@/components/course/ImportCourseDialog'
@@ -57,7 +59,7 @@ export default function App() {
       onImportCourse={() => { setNavOpen(false); setImportOpen(true) }} />
   )
 
-  const title: ReactNode = route.kind === 'global' ? GLOBAL_TITLES[route.view] : route.kind === 'setup' ? 'Course setup' : routeCourse ? (
+  const title: ReactNode = route.kind === 'global' ? GLOBAL_TITLES[route.view] : route.kind === 'setup' ? 'Course setup' : route.kind === 'doc' ? 'Document' : routeCourse ? (
     <span className="flex min-w-0 items-center gap-2">
       <Tag hue={routeCourse.hue} link className="font-semibold">{routeCourse.key}</Tag>
       <span className="truncate">{routeCourse.title}</span>
@@ -94,6 +96,7 @@ export default function App() {
         ) : (
           route.kind === 'setup'
             ? <SetupView draftId={route.draftId} semester={semester} courses={courses ?? []} />
+            : route.kind === 'doc' ? <DocView key={route.id} id={route.id} />
             : <Content route={route} course={routeCourse} />
         )}
       </main>
@@ -121,13 +124,13 @@ function Welcome({ onCreate }: { onCreate: () => void }) {
   )
 }
 
-function Content({ route, course }: { route: Exclude<Route, { kind: 'setup' }>; course: Course | null | undefined }) {
+function Content({ route, course }: { route: Exclude<Route, { kind: 'setup' | 'doc' }>; course: Course | null | undefined }) {
   if (route.kind === 'global') {
     switch (route.view) {
       case 'today': return <TodayView />
       case 'calendar': return <WeekView />
       case 'dashboard': return <ComingSoon title="Semester dashboard" phase="7.3">All courses side by side, with exam countdowns.</ComingSoon>
-      case 'documents': return <ComingSoon title="Documents" phase="4.1">Every course’s files in one place.</ComingSoon>
+      case 'documents': return <DocumentsView />
       case 'settings': return <SettingsView />
     }
   }

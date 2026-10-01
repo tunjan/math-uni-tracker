@@ -212,6 +212,17 @@ describe('documents', () => {
     expect(await db.blobs.get(paper.blobId)).toBeUndefined()
     expect((await db.documents.get(scheme.id))!.linkedIds).toEqual([])
   })
+
+  it('links are symmetric, unlinking removes the backlink, and links never cross courses', async () => {
+    await ali()
+    const paper = await addDocument({ ...meta, kind: 'past_paper', name: '2024.pdf' }, new Blob(['a']))
+    const scheme = await addDocument({ ...meta, kind: 'mark_scheme', name: 's.pdf', linkedIds: [paper.id] }, new Blob(['b']))
+    expect((await db.documents.get(paper.id))!.linkedIds).toEqual([scheme.id])
+    await updateDocument(scheme.id, { linkedIds: [] })
+    expect((await db.documents.get(paper.id))!.linkedIds).toEqual([])
+    expect(await problems(updateDocument(scheme.id, { linkedIds: [crypto.randomUUID()] }))).toHaveLength(1)
+    expect((await db.documents.get(scheme.id))!.linkedIds).toEqual([])
+  })
 })
 
 describe('settings', () => {

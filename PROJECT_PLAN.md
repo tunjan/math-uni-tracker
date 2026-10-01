@@ -614,9 +614,9 @@ Every phase ends with `tsc` at 0 errors and `oxlint` at 0 errors. Pure logic shi
 - **3.9 `.ics` export.** *(done)*
 
 ### Milestone 4: documents library
-- **4.1 Documents views:** per course and global, tags, filters, open, confirm delete.
-- **4.2 Upload dialog with metadata and links** (also used in the side sheet).
-- **4.3 Pasted Markdown documents,** rendered with KaTeX.
+- **4.1 Documents views:** *(done)* per course and global, tags, filters (course, kind, source, topic, assessment, search ignoring accents), sorts, open, confirm delete.
+- **4.2 Upload dialog with metadata and links** *(done)* (also used in the side sheet). PDFs, photos, Markdown and JSON; items covered; links are symmetric and stay within a course (the store enforces both).
+- **4.3 Pasted Markdown documents,** *(done)* rendered with KaTeX and GFM tables at `#/doc/<id>`; raw HTML is not rendered and remote images are never fetched (shown as a link), so opening a document contacts nothing.
 
 ### Milestone 5: prompt generator
 - **5.1 `prompts/templates.ts` + context builder (pure).**

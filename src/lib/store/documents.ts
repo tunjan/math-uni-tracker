@@ -17,8 +17,23 @@ export async function addDocument(meta: NewDocument, blob: Blob): Promise<Docume
     await requireWritable(doc.courseKey, `Document ${doc.name}`)
     await db.blobs.add({ id: doc.blobId, blob })
     await db.documents.add(doc)
+    await syncBacklinks(doc, [])
     return doc
   })
+}
+
+/**
+ * Links are symmetric (a paper lists its mark scheme and the mark scheme lists the paper), and stay within one course.
+ * Called inside the writing transaction, after `doc` is stored.
+ */
+async function syncBacklinks(doc: DocumentMeta, before: string[]) {
+  const others = await db.documents.bulkGet(doc.linkedIds)
+  const bad = doc.linkedIds.filter((_, i) => others[i]?.courseKey !== doc.courseKey)
+  if (bad.length) throw new ValidationError(`Document ${doc.name}`, bad.map((x) => `linkedIds: ${x} is not a document of ${doc.courseKey}`))
+  const add = others.filter((o): o is DocumentMeta => !!o && !o.linkedIds.includes(doc.id)).map((o) => ({ ...o, linkedIds: [...o.linkedIds, doc.id] }))
+  const gone = (await db.documents.bulkGet(before.filter((x) => !doc.linkedIds.includes(x))))
+    .filter((o): o is DocumentMeta => !!o).map((o) => ({ ...o, linkedIds: o.linkedIds.filter((x) => x !== doc.id) }))
+  await db.documents.bulkPut([...add, ...gone])
 }
 
 /** Metadata only: listing never reads the bytes. */
@@ -35,8 +50,9 @@ export async function updateDocument(id: string, patch: Partial<Omit<DocumentMet
     const cur = await db.documents.get(id)
     if (!cur) throw new ValidationError('Document', [`no document ${id}`])
     await requireWritable(cur.courseKey, `Document ${cur.name}`)
-    const next = valid(DocumentMeta, { ...cur, ...patch, id }, `Document ${cur.name}`)
+    const next = valid(DocumentMeta, { ...cur, ...patch, id, linkedIds: [...new Set((patch.linkedIds ?? cur.linkedIds).filter((x) => x !== id))] }, `Document ${cur.name}`)
     await db.documents.put(next)
+    await syncBacklinks(next, cur.linkedIds)
     return next
   })
 }
