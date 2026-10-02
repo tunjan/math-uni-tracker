@@ -1,10 +1,10 @@
-import { CalendarRange, ClipboardList, FolderOpen, LayoutDashboard, Table2 } from 'lucide-react'
+import { ClipboardList, Flag, FolderOpen, LayoutDashboard, Table2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { routeHash, type CourseTab } from '@/routes'
 
 const TABS: { tab: CourseTab; label: string; icon: typeof Table2 }[] = [
   { tab: 'grid', label: 'Grid', icon: Table2 },
-  { tab: 'plan', label: 'Plan', icon: CalendarRange },
+  { tab: 'plan', label: 'Milestones', icon: Flag },
   { tab: 'docs', label: 'Documents', icon: FolderOpen },
   { tab: 'exams', label: 'Exams', icon: ClipboardList },
   { tab: 'dash', label: 'Dashboard', icon: LayoutDashboard },

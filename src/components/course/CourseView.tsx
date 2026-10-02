@@ -86,7 +86,7 @@ export function CourseView({ course, tab }: { course: Course; tab: CourseTab }) 
         <Dashboard course={course} progress={progress} index={index} derived={derived} subtopicProgress={subtopicProgress} onOpenSubtopic={setSheetId}
           onSelectTopic={(id) => { setPrefs({ topicId: id }); navigate({ kind: 'course', key: course.key, tab: 'grid' }) }} />
       )}
-      {tab === 'plan' && <PlanTab course={course} />}
+      {tab === 'plan' && <PlanTab course={course} index={index} derived={derived} readOnly={readOnly} onOpenSubtopic={setSheetId} />}
       {tab === 'docs' && <DocumentsView courseKey={course.key} />}
       {tab === 'exams' && <ExamsView course={course} readOnly={readOnly} />}
       <SubtopicSheet subtopicId={sheetId} onClose={() => setSheetId(null)} courseKey={course.key} readOnly={readOnly}

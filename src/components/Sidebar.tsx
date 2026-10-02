@@ -1,18 +1,21 @@
-import { Archive, CalendarDays, ChevronsUpDown, CircleCheck, FileUp, FolderOpen, LayoutDashboard, Pencil, Plus, Settings, Sparkles } from 'lucide-react'
+import { Archive, CalendarDays, Flag, ChevronsUpDown, CircleCheck, FileUp, FolderOpen, LayoutDashboard, Pencil, Plus, Settings, Sparkles } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup,
   DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { pct } from '@/lib/format'
+import { getSettings } from '@/lib/store/settings'
 import type { Course, Semester } from '@/lib/schema/course'
 import type { CourseProgress } from '@/lib/store/hooks'
 import { cn } from '@/lib/utils'
 import { routeHash, type GlobalView, type Route } from '@/routes'
 import { Tag } from './Tag'
 
-const NAV: { view: GlobalView; label: string; icon: typeof Settings }[] = [
-  { view: 'today', label: 'Today', icon: CircleCheck },
-  { view: 'calendar', label: 'Calendar', icon: CalendarDays },
+const NAV: { view: GlobalView; label: string; icon: typeof Settings; daily?: boolean }[] = [
+  { view: 'milestones', label: 'Milestones', icon: Flag },
+  { view: 'today', label: 'Today', icon: CircleCheck, daily: true },
+  { view: 'calendar', label: 'Calendar', icon: CalendarDays, daily: true },
   { view: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { view: 'documents', label: 'Documents', icon: FolderOpen },
   { view: 'settings', label: 'Settings', icon: Settings },
@@ -43,6 +46,7 @@ const entry = (active: boolean) =>
   cn('flex w-full flex-col gap-1 rounded-md px-2 py-1.5 text-left hover:bg-sidebar-accent/60', active && 'bg-sidebar-accent font-medium')
 
 export function Sidebar({ semesters, semester, onChooseSemester, onNewSemester, onEditSemester, courses, progress, route, onNavigate, onImportCourse }: Props) {
+  const dailyPlan = useLiveQuery(async () => (await getSettings()).dailyPlan, []) ?? false
   const current = semesters.filter((s) => !s.archived)
   const archived = semesters.filter((s) => s.archived)
   return (
@@ -76,7 +80,7 @@ export function Sidebar({ semesters, semester, onChooseSemester, onNewSemester, 
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {NAV.map(({ view, label, icon: Icon }) => (
+      {NAV.filter((n) => !n.daily || dailyPlan).map(({ view, label, icon: Icon }) => (
         <a key={view} href={routeHash({ kind: 'global', view })} onClick={onNavigate}
           className={entry(route.kind === 'global' && route.view === view)}>
           <span className="flex items-center gap-2"><Icon className="size-4 text-muted-foreground" />{label}</span>

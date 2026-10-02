@@ -77,6 +77,7 @@ function SheetBody({ id, courseKey, readOnly, index, derived, progress, subtopic
           <Button size="xs" variant="outline" onClick={() => onPrompt(s.items.map((i) => i.id), 'problem_set')}><Sparkles />Problem-set prompt</Button>
           <Button size="xs" variant="outline" onClick={() => onPrompt(s.items.map((i) => i.id), 'study_notes')}><Sparkles />Study-notes prompt</Button>
         </div>
+        <TargetLine courseKey={courseKey} id={id} completed={d.status === 'completed'} />
         {d.retestFrom && <Tag hue="orange" className="self-start">Retest from {formatDate(d.retestFrom)}</Tag>}
         {d.status === 'warning' && !d.retestFrom && (
           <p className="text-xs text-muted-foreground">
@@ -182,6 +183,18 @@ function Books({ id, books }: { id: string; books: Book[] }) {
   )
 }
 
+
+/** The milestone for this subtopic, if milestones are set. */
+function TargetLine({ courseKey, id, completed }: { courseKey: string; id: string; completed: boolean }) {
+  const t = useLiveQuery(async () => (await db.paces.get(courseKey))?.targets.find((x) => x.subtopicId === qualify(courseKey, id)) ?? null, [courseKey, id])
+  if (!t) return null
+  const late = !completed && t.due < todayISO()
+  return (
+    <p className={cn('text-xs', late ? 'text-destructive' : 'text-muted-foreground')}>
+      {completed ? `Milestone met (target ${formatDate(t.due)})` : `Milestone: ${late ? 'overdue since' : 'complete by'} ${formatDate(t.due)} (cut-off ${formatDate(t.deadline)}${t.assessmentId ? ` for ${t.assessmentId}` : ''})`}
+    </p>
+  )
+}
 
 /** This subtopic's documents. Adding opens the library's upload dialog, filed here by default. */
 function Documents({ courseKey, topicId, subtopicId, readOnly }: { courseKey: string; topicId: string; subtopicId: string; readOnly: boolean }) {

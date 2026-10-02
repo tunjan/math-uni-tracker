@@ -11,6 +11,7 @@ import { appendReview, listReviews, updateItem, updateSubtopic } from './progres
 import { getSettings, updateSettings } from './settings'
 import { applyPlan, completeSession, proposePlan, setLocked } from './planning'
 import { putAssessment as putA } from './courses'
+import { setBaseline } from './milestones'
 import { acceptGrading, feedbackLines, saveGrading, setOverride } from './gradings'
 import { MarkScheme } from '../schema/markscheme'
 
@@ -281,6 +282,21 @@ describe('gradings', () => {
     await ali()
     await save()
     expect([await db.items.count(), await db.subtopics.count(), await db.reviews.count(), await db.documents.count()]).toEqual([0, 0, 0, 0])
+  })
+})
+
+describe('milestones', () => {
+  it('a baseline covers every subtopic not yet completed, and is replaced on rebaseline', async () => {
+    await ali()
+    await updateSettings({ availability: { ...(await getSettings()).availability } })
+    for (const id of ['ALI:MA.01.1', 'ALI:MA.01.2']) await updateItem(id, { dateStarted: '2026-10-01', dateFinished: '2026-10-02' })
+    await updateSubtopic('ALI:MA.01', (c) => ({ books: c.books, testAttempts: [{ id: 't', date: '2026-10-03', score: 4, weakPoints: '', source: 'manual', gradingId: null, percent: null }] }))
+    const b = await setBaseline('ALI', '2026-10-05')
+    expect(b.completedAtStart).toEqual(['ALI:MA.01'])
+    expect(b.targets.map((t) => t.subtopicId)).not.toContain('ALI:MA.01')
+    expect(b.targets).toHaveLength(7)
+    await setBaseline('ALI', '2026-10-06')
+    expect((await db.paces.toArray()).map((x) => x.startDate)).toEqual(['2026-10-06'])
   })
 })
 
